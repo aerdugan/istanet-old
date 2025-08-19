@@ -1,0 +1,43 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ddd</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A drag & drop HTML editor Javascript library for web applications.">  
+    <link rel="shortcut icon" href="#">
+    <link href="<?php setContentBox(); ?>assets/minimalist-blocks/content.css" rel="stylesheet">
+    <link href="<?php setContentBox(); ?>box/box-flex.css" rel="stylesheet">
+</head>
+<body>
+<div class="is-wrapper"></div>
+<link href="<?php setContentBox(); ?>assets/scripts/glide/css/glide.core.css" rel="stylesheet">
+<link href="<?php setContentBox(); ?>assets/scripts/glide/css/glide.theme.css" rel="stylesheet">
+<script src="<?php setContentBox(); ?>assets/scripts/glide/glide.js"></script>
+<!--
+<link href="assets/scripts/slick/slick.css" rel="stylesheet">
+<link href="assets/scripts/slick/slick-theme.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="assets/scripts/slick/slick.js"></script>
+-->
+<link href="<?php setContentBox(); ?>assets/scripts/navbar/navbar.css" rel="stylesheet">
+<script src="<?php setContentBox(); ?>assets/scripts/navbar/navbar.min.js"></script>
+<script src="<?php setContentBox(); ?>box/box-flex.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/smoothscroll/1.4.10/SmoothScroll.min.js"></script>
+<script>
+    SmoothScroll({
+        frameRate: 150,
+        animationTime: 800,
+        stepSize: 120,
+        pulseAlgorithm: 1,
+        pulseScale: 4,
+        pulseNormalize: 1,
+        accelerationDelta: 300,
+        accelerationMax: 2,
+        keyboardSupport: 1,
+        arrowScroll: 50,
+        fixedBackground: 0
+    });
+</script>
+</body>
+</html>

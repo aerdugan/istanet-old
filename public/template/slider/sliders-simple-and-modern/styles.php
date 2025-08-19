@@ -1,0 +1,1 @@
+<link rel="stylesheet" href="css/sliders/simple-slider/simple-slider.css" type="text/css" media="all">

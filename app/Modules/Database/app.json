@@ -1,0 +1,19 @@
+{
+    "name": "Database Manager",
+    "description": "Database yönetim modülü",
+    "type": "module",
+    "author": "Ahmet Erduğan",
+    "homepage": "https://www.istanet.com",
+    "license": "MIT",
+    "version": "1.0.0",
+    "directory": "Database",
+    "menu": [
+        {
+            "icon": "fa fa-database",
+            "title": "App.menu_database",
+            "url": "database",
+            "children": [],
+            "external": false
+        }
+    ]
+}

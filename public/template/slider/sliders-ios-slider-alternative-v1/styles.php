@@ -1,0 +1,1 @@
+	<link rel="stylesheet" href="https://cdn.istanet.com/public/Kallyas/css/sliders/ios/style.css" type="text/css" media="all">

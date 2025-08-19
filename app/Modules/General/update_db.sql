@@ -1,0 +1,4 @@
+-- ----------------------------
+--  Update structure for `task`
+--  Use [DB_PREFIX] in front of the tables to implement the default database prefix.
+-- ----------------------------

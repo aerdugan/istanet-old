@@ -1,0 +1,28 @@
+{
+    "name": "Blog Manager",
+    "description": "Blog Module",
+    "type": "module",
+    "author": "Ahmet Erduğan",
+    "homepage": "https://www.istanet.com",
+    "license": "MIT",
+    "version": "1.0.2",
+    "directory": "Blog",
+    "menu": [
+        {
+            "icon": "fa fa-sliders",
+            "title": "Blog Yönetimi",
+            "children": [
+                {
+                    "title": "Blog Listesi",
+                    "url": "blogs",
+                    "external": false
+                },
+                {
+                    "title": "Blog Kategorileri",
+                    "url": "blogs/blogCategories",
+                    "external": false
+                }
+            ]
+        }
+    ]
+}

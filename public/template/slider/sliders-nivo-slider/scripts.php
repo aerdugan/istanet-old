@@ -1,0 +1,2 @@
+<script type="text/javascript" src="https://cdn.istanet.com/public/Kallyas/js/plugins/_sliders/nivo-slider/jquery.nivo.slider.pack.js"></script>
+<script type="text/javascript" src="https://cdn.istanet.com/public/Kallyas/js/trigger/slider/nivo-slider/kl-nivo-slider.js"></script>

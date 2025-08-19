@@ -1,0 +1,28 @@
+{
+    "name": "Popup Manager",
+    "description": "Popup Yönetimi",
+    "type": "module",
+    "author": "Ahmet Erduğan",
+    "homepage": "https://ahmeterdugan.com.tr",
+    "license": "MIT",
+    "version": "1.0.0a",
+    "directory": "Popup",
+    "menu": [
+        {
+            "icon": "fas fa-tasks",
+            "title": "Popup Yönetimi",
+            "children": [
+                {
+                    "title": "Popup Listesi",
+                    "url": "popup",
+                    "external": false
+                },
+                {
+                    "title": "App.menu_task_add",
+                    "url": "popup/settings",
+                    "external": false
+                }
+            ]
+        }
+    ]
+}
