@@ -1,4 +1,25 @@
-<!-- Footer style 4 -->
+<?php
+$s = service('settings');
+$raw = $s->get('Site.socials');   // setting('Site.socials') da olur
+$socials = [];
+
+// normalize (array / php-serialize / json)
+if (is_array($raw)) {
+    $socials = $raw;
+} elseif (is_string($raw) && $raw !== '') {
+    $un = @unserialize($raw);
+    if ($un !== false || $raw === 'b:0;') {
+        $socials = $un;
+    } else {
+        $js = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($js)) {
+            $socials = $js;
+        }
+    }
+}
+if (!is_array($socials)) $socials = [];
+?>
+
 <footer id="footer" data-footer-style="4">
     <div class="container">
         <div class="row">
@@ -27,22 +48,20 @@
             <div class="col-sm-12 d-flex justify-content-between">
                 <div class="elm-socialicons m-auto">
                     <ul class="elm-social-icons sc--colored sh--rounded clearfix">
-                        <li>
-                            <a href="#" class="elm-sc-icon elm-sc-icon-0 fab fa-facebook-f bg-icon" target="_self" title="Facebook"></a>
-                        </li>
-                        <li>
-                            <a href="#" class="elm-sc-icon elm-sc-icon-1 fab fa-twitter bg-icon" target="_self" title="Twitter"></a>
-                        </li>
-                        <li>
-                            <a href="#" class="elm-sc-icon elm-sc-icon-2 fab fa-dribbble bg-icon" target="_self" title="Dribbble"></a>
-                        </li>
-                        <li>
-                            <a href="#" class="elm-sc-icon elm-sc-icon-3 fab fa-pinterest bg-icon" target="_self" title="Pinterest"></a>
-                        </li>
-                        <li>
-                            <a href="#" class="elm-sc-icon elm-sc-icon-4 fab fa-linkedin bg-icon" target="_self" title="LinkedIn"></a>
-                        </li>
-                    </ul>
+						<li class="title">GET SOCIAL</li>
+                        <?php foreach ($socials as $row):
+                            $platform = trim((string)($row['platform'] ?? ''));
+                            $icon     = trim((string)($row['icon'] ?? '')); // örn: "fab fa-facebook-f"
+                            $url      = trim((string)($row['url'] ?? '#'));
+                            if ($url === '' && $platform === '') continue;
+                            ?>
+                            <li>
+                                <a href="<?= esc($url) ?>" target="_blank" title="<?= esc($platform) ?>">
+                                    <i class="<?= esc($icon) ?>"></i>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+					</ul>
                 </div>
             </div>
         </div>

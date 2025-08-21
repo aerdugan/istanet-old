@@ -1,12 +1,12 @@
-<?= $this->extend('Views/admin/base') ?>
-<?= $this->section('head') ?>
+<?= $this->extend('layout/main') ?>
+<?= $this->section('pageStyles') ?>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.css'>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/gruvbox-dark.min.css" integrity="sha512-FLFAEkNiUCQXE4MNOd7SrEzeNFEhiCnNYsa1S3sNMZDTNFJgPy42giNLGGJ+Rjbce5L6ICJXtlv6Ue61FFIqqw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/cobalt.min.css" integrity="sha512-dAYwzcmdv0GvCo9UJmVP430Mc9kmvpdDVk/pHNG90qTZR6tpHQlR9BsVdK9ZGpnNtQNVl+j7UQppCwOPN0TTNQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/material-palenight.min.css" integrity="sha512-uIAyXysSwPKYTS4BrBQGkt7i9ozdNjNA4jXfjFDl6fWIc2zDllleoiY5EkH7Ib2j+Qb8YJx4a5qy192JZqxqVg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <?= $this->endSection() ?>
-<?= $this->section('breadcrumb') ?>
+<?= $this->section('breadCrumbs') ?>
 <div class="app-toolbar-wrapper d-flex flex-stack flex-wrap gap-4 w-100">
     <div class="page-title d-flex flex-column justify-content-center gap-1 me-3">
         <h1 class="page-heading d-flex flex-column justify-content-center text-gray-900 fw-bold fs-3 m-0">Tasarım Ayarları</h1>
@@ -84,7 +84,7 @@
 </div>
 
 <?= $this->endSection() ?>
-<?= $this->section('javascript') ?>
+<?= $this->section('pageScripts') ?>
 
 <script src="https://geniuscript.com/selio-script/admin-assets/js/codemirror/lib/codemirror.js"></script>
 <link rel="stylesheet" href="https://geniuscript.com/selio-script/admin-assets/js/codemirror/lib/codemirror.css">

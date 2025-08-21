@@ -1,8 +1,32 @@
+<?php
+$s = service('settings');
+$raw = $s->get('Site.socials');   // setting('Site.socials') da olur
+$socials = [];
+
+// normalize (array / php-serialize / json)
+if (is_array($raw)) {
+    $socials = $raw;
+} elseif (is_string($raw) && $raw !== '') {
+    $un = @unserialize($raw);
+    if ($un !== false || $raw === 'b:0;') {
+        $socials = $un;
+    } else {
+        $js = json_decode($raw, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($js)) {
+            $socials = $js;
+        }
+    }
+}
+if (!is_array($socials)) $socials = [];
+?>
+
 <footer id="footer" data-footer-style="1">
     <div class="container">
         <div class="row">
             <div class="col-sm-12 col-md-5 mb-30">
-                <h3 class="title m_title">HOGASH STUDIO</h3>
+                <h3 class="title m_title">
+                    HOGASH STUDIO
+                </h3>
                 <div class="sbs">
                     <ul class="menu">
                         <li><a href="index.html">Home</a></li>
@@ -30,16 +54,21 @@
                     </form>
                     <div id="notification_container"></div>
                     <p>We never spam!</p>
-                </div>
+                </div><!-- end newsletter-signup -->
             </div>
             <div class="col-sm-12 col-md-3 mb-30">
                 <h3 class="title m_title">GET IN TOUCH</h3>
                 <div class="contact-details">
                     <p>
-                        <strong>T <?php getCompanyDefaultPhone() ?></strong><br>
-                        Email: <a href="mailto:<?php getCompanyDefaultEmail(); ?>"><?php getCompanyDefaultEmail(); ?></a>
+                        <strong>T (212) 555 55 00</strong><br>
+                        Email: <a href="#">sales@yourwebsite.com</a>
                     </p>
-                    <p><?php getCompanyDefaultAddress(); ?></p>
+
+                    <p>
+                        Your Company LTD<br>
+                        Street nr 100, 4536534, Chicago, US
+                    </p>
+
                     <p>
                         <a href="http://goo.gl/maps/1OhOu" target="_blank">
                             <i class="icon-map-marker white-icon"></i>
@@ -47,17 +76,15 @@
                         </a>
                     </p>
                 </div>
+                <!--/ .contact-details -->
             </div>
+            <!--/ col-sm-12 col-md-3 mb-30 -->
         </div>
-        <div class="row">
-            <div class="col-sm-12 col-md-6">
+        <!--/ row -->
 
-            </div>
+        <div class="row">
+            <div class="col-sm-12 col-md-6"></div>
             <div class="col-sm-12 col-md-6 mb-30">
-                <div class="social-share social-share d-flex justify-content-end">
-                    <div class="fb-like d-flex align-self-center" data-href="https://www.facebook.com/hogash.themeforest" data-layout="button_count" data-action="like" data-show-faces="false" data-share="false"></div>
-                    <div id="fb-root"></div>
-                </div>
                 <div class="payments-links d-flex">
                     <ul class="ml-auto mt-20">
                         <li>
@@ -81,13 +108,23 @@
                 <div class="bottom clearfix">
                     <ul class="social-icons sc--clean clearfix">
                         <li class="title">GET SOCIAL</li>
-                        <?php echo view('public/inc/socialSettings.php'); ?>
+                        <?php foreach ($socials as $row):
+                            $platform = trim((string)($row['platform'] ?? ''));
+                            $icon     = trim((string)($row['icon'] ?? '')); // örn: "fab fa-facebook-f"
+                            $url      = trim((string)($row['url'] ?? '#'));
+                            if ($url === '' && $platform === '') continue;
+                            ?>
+                            <li>
+                                <a href="<?= esc($url) ?>"
+                                   target="_blank"
+                                   class="<?= esc($icon) ?>"
+                                   title="<?= esc($platform) ?>"></a>
+                            </li>
+                        <?php endforeach; ?>
                     </ul>
                     <div class="copyright">
                         <?php echo view('public/inc/footerLogoSettings.php'); ?>
-                        <p>
-                            © 2018 All rights reserved. Buy <a href="http://themeforest.net/item/kallyas-responsive-multipurpose-template/3583938">Kallyas Template</a>.
-                        </p>
+                        <p>© 2018 All rights reserved. Buy <a href="http://themeforest.net/item/kallyas-responsive-multipurpose-template/3583938">Kallyas Template</a>.</p>
                     </div>
                 </div>
             </div>

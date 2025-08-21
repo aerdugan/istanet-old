@@ -39,3 +39,20 @@ if (!function_exists('getPages')) {
 }
 
 // BURADA buildTree TANIMI OLMAYACAK.
+
+use CodeIgniter\Settings\Settings;
+
+if (! function_exists('setting')) {
+    function setting(?string $key = null, $value = null)
+    {
+        $setting = service('settings'); /** @var Settings $setting */
+
+        if (empty($key)) {
+            return $setting;
+        }
+        if (func_num_args() === 1) {
+            return $setting->get($key);
+        }
+        $setting->set($key, $value);
+    }
+}

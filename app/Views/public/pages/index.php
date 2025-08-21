@@ -32,13 +32,12 @@
     <link href="<?php setContentBox(); ?>assets/scripts/" rel="stylesheet">
     <link href="<?php setContentBox(); ?>assets/scripts/navbar/navbar.css" rel="stylesheet">
     <?php  if(!empty($items->cBoxMainCss)) { echo $items->cBoxMainCss; }
-    if(!empty($items->cBoxSectionCss)) { echo $items->cBoxSectionCss; }
-    echo FCPATH . 'template/slider/' . $themeSettings->setSlider ?>
+    if(!empty($items->cBoxSectionCss)) { echo $items->cBoxSectionCss; } ?>
 
 <?php } ?>
 <?php
 if ($items->rank == 1) {
-    $footerPath = FCPATH . 'template/slider/' . $themeSettings->setSlider . 'styles.php';
+    $footerPath = '/template/slider/' . $themeSettings->setSlider . '/styles.php';
     if (is_file($footerPath)) {
         include $footerPath;
     }
@@ -49,7 +48,7 @@ if ($items->rank == 1) {
 <?php if (isset($items) && $items->rank > 1 && isset($items->breadcrumbStatus) && $items->breadcrumbStatus == 1): ?>
     <?php if (isset($themeSettings) && isset($themeSettings->setBreadcrumb)): ?>
         <?php
-        $breadcrumbPath = "template/breadCrumb/" . $themeSettings->setBreadcrumb;
+        $breadcrumbPath = "/template/breadCrumb/" . $themeSettings->setBreadcrumb;
         echo $this->include($breadcrumbPath);
         ?>
     <?php endif; ?>
@@ -59,7 +58,7 @@ if ($items->rank == 1) {
 
 <?php
 if ($items->rank == 1) {
-    $footerPath = FCPATH . 'template/slider/' . $themeSettings->setSlider . 'index.php';
+    $footerPath = '/template/slider/' . $themeSettings->setSlider . '/index.php';
     if (is_file($footerPath)) {
         include $footerPath;
     }
@@ -114,7 +113,7 @@ if ($items->rank == 1) {
 <?php } ?>
 <?php
 if ($items->rank == 1) {
-    $footerPath = FCPATH . 'template/slider/' . $themeSettings->setSlider . 'scripts.php';
+    $footerPath = '/template/slider/' . $themeSettings->setSlider . '/script.php';
     if (is_file($footerPath)) {
         include $footerPath;
     }

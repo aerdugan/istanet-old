@@ -8,6 +8,7 @@ use App\Models\CommonModel;
 use CodeIgniter\HTTP\RedirectResponse;
 use Config\Services;
 
+
 /**
  * Class Task
  */
@@ -37,26 +38,21 @@ class General extends BaseController
             return redirect()->to('/dashboard');
         }
 
-        // Site.Company grubunu tek seferde al
-        $company = setting('Site.Company');
+        $s = service('settings');
 
-        // Geriye-dönük uyumluluk: eğer grup yoksa boş dizi kullan
-        if (!is_array($company)) {
-            $company = [];
-        }
-
-        // View tarafında $item->alan şeklinde kullanabilmen için objeye çevir
+        // Her alanı ayrı ayrı (string) çekiyoruz
         $data['item'] = (object) [
-            'company_name'    => (string) ($company['company_name']    ?? ''),
-            'companyLongName' => (string) ($company['companyLongName'] ?? ''),
-            'taxOffice'       => (string) ($company['taxOffice']       ?? ''),
-            'taxNumber'       => (string) ($company['taxNumber']       ?? ''),
-            'ticariSicilNo'   => (string) ($company['ticariSicilNo']   ?? ''),
-            'mersisNo'        => (string) ($company['mersisNo']        ?? ''),
+            'company_name'    => (string) ($s->get('Site/Company.company_name')    ?? ''),
+            'companyLongName' => (string) ($s->get('Site/Company.companyLongName') ?? ''),
+            'taxOffice'       => (string) ($s->get('Site/Company.taxOffice')       ?? ''),
+            'taxNumber'       => (string) ($s->get('Site/Company.taxNumber')       ?? ''),
+            'ticariSicilNo'   => (string) ($s->get('Site/Company.ticariSicilNo')   ?? ''),
+            'mersisNo'        => (string) ($s->get('Site/Company.mersisNo')        ?? ''),
         ];
 
         return view('App\Modules\General\Views\general\company', $data);
     }
+
     public function companySettingsUpdate(): RedirectResponse
     {
         if (! user_can('General.General.companySettingsUpdate')) {
@@ -67,7 +63,7 @@ class General extends BaseController
             ]);
             return redirect()->to('/dashboard');
         }
-        // Basit doğrulama
+
         $rules = [
             'company_name'     => 'required|max_length[255]',
             'companyLongName'  => 'permit_empty|max_length[255]',
@@ -83,22 +79,20 @@ class General extends BaseController
                 ->withInput();
         }
 
-        // POST verileri
         $post = $this->request->getPost();
+        $s    = service('settings');
 
-        $payload = [
-            'company_name'    => trim((string) ($post['company_name']    ?? '')),
-            'companyLongName' => trim((string) ($post['companyLongName'] ?? '')),
-            'taxOffice'       => trim((string) ($post['taxOffice']       ?? '')),
-            'taxNumber'       => trim((string) ($post['taxNumber']       ?? '')),
-            'ticariSicilNo'   => trim((string) ($post['ticariSicilNo']   ?? '')),
-            'mersisNo'        => trim((string) ($post['mersisNo']        ?? '')),
-        ];
+        // Her birini ayrı SATIR (string) olarak yaz
+        $s->set('Site/Company.company_name',    trim((string) ($post['company_name']    ?? '')));
+        $s->set('Site/Company.companyLongName', trim((string) ($post['companyLongName'] ?? '')));
+        $s->set('Site/Company.taxOffice',       trim((string) ($post['taxOffice']       ?? '')));
+        $s->set('Site/Company.taxNumber',       trim((string) ($post['taxNumber']       ?? '')));
+        $s->set('Site/Company.ticariSicilNo',   trim((string) ($post['ticariSicilNo']   ?? '')));
+        $s->set('Site/Company.mersisNo',        trim((string) ($post['mersisNo']        ?? '')));
 
-        // Settings’e yaz
-        service('settings')->set('Site.Company', $payload);
+        // (Opsiyonel) Eski grup kaydını temizlemek istersen:
+        // $s->set('Site.Company', null);
 
-        // Bildirim
         session()->setFlashdata('message', 'Firma bilgileri başarıyla güncellendi.');
         session()->setFlashdata('alert-type', 'success');
 
@@ -275,39 +269,21 @@ class General extends BaseController
             ]);
             return redirect()->to('/dashboard');
         }
-        // Önce grup key'i tek seferde al
-        $other = setting('Site.Other');
 
-        if (!is_array($other) || $other === null) {
-            // GERİYE DÖNÜK: Daha önce tek tek key'ler yazıldıysa buradan doldur
-            $other = [
-                'googleSiteKey'     => setting('Site.Other.googleSiteKey')     ?? '',
-                'googleSecurityKey' => setting('Site.Other.googleSecurityKey') ?? '',
-                'googleAnalytics'   => setting('Site.Other.googleAnalytics')   ?? '',
-                'chatBox'           => setting('Site.Other.chatBox')           ?? '',
-                'whatsappStatus'    => setting('Site.Other.whatsappStatus')    ?? 0,
-                'phoneNumber'       => setting('Site.Other.phoneNumber')       ?? '',
-                'messageSubject'    => setting('Site.Other.messageSubject')    ?? '',
-                'popupTitle'        => setting('Site.Other.popupTitle')        ?? '',
-                'popupDesc'         => setting('Site.Other.popupDesc')         ?? '',
-                'buttonCaptionName' => setting('Site.Other.buttonCaptionName') ?? '',
-                'message'           => setting('Site.Other.message')           ?? '',
-            ];
-        }
+        $s = service('settings');
 
-        // Tipleri normalize et (cast sırasında "Array to string" hatasını engeller)
         $data['item'] = (object) [
-            'googleSiteKey'     => (string) ($other['googleSiteKey']     ?? ''),
-            'googleSecurityKey' => (string) ($other['googleSecurityKey'] ?? ''),
-            'googleAnalytics'   => (string) ($other['googleAnalytics']   ?? ''),
-            'chatBox'           => (string) ($other['chatBox']           ?? ''),
-            'whatsappStatus'    => (string) ((int)($other['whatsappStatus'] ?? 0)), // "0"/"1"
-            'phoneNumber'       => (string) ($other['phoneNumber']       ?? ''),
-            'messageSubject'    => (string) ($other['messageSubject']    ?? ''),
-            'popupTitle'        => (string) ($other['popupTitle']        ?? ''),
-            'popupDesc'         => (string) ($other['popupDesc']         ?? ''),
-            'buttonCaptionName' => (string) ($other['buttonCaptionName'] ?? ''),
-            'message'           => (string) ($other['message']           ?? ''),
+            'googleSiteKey'     => (string) ($s->get('Site/Other.googleSiteKey')     ?? ''),
+            'googleSecurityKey' => (string) ($s->get('Site/Other.googleSecurityKey') ?? ''),
+            'googleAnalytics'   => (string) ($s->get('Site/Other.googleAnalytics')   ?? ''),
+            'chatBox'           => (string) ($s->get('Site/Other.chatBox')           ?? ''),
+            'whatsappStatus'    => (string) ((int)($s->get('Site/Other.whatsappStatus') ?? 0)), // "0"/"1"
+            'phoneNumber'       => (string) ($s->get('Site/Other.phoneNumber')       ?? ''),
+            'messageSubject'    => (string) ($s->get('Site/Other.messageSubject')    ?? ''),
+            'popupTitle'        => (string) ($s->get('Site/Other.popupTitle')        ?? ''),
+            'popupDesc'         => (string) ($s->get('Site/Other.popupDesc')         ?? ''),
+            'buttonCaptionName' => (string) ($s->get('Site/Other.buttonCaptionName') ?? ''),
+            'message'           => (string) ($s->get('Site/Other.message')           ?? ''),
         ];
 
         return view('App\Modules\General\Views\general\otherSettings', $data);
@@ -344,34 +320,27 @@ class General extends BaseController
         }
 
         $post = $this->request->getPost();
+        $s    = service('settings');
 
-        // TEK PAYLOAD (array) —>> 'Site.Other' altına JSON olarak gider
-        $payload = [
-            'googleSiteKey'     => (string) ($post['googleSiteKey']     ?? ''),
-            'googleSecurityKey' => (string) ($post['googleSecurityKey'] ?? ''),
-            'googleAnalytics'   => (string) ($post['googleAnalytics']   ?? ''),
-            'chatBox'           => (string) ($post['chatBox']           ?? ''),
-            'whatsappStatus'    => isset($post['whatsappStatus']) ? (int) $post['whatsappStatus'] : 0,
-            'phoneNumber'       => (string) ($post['phoneNumber']       ?? ''),
-            'messageSubject'    => (string) ($post['messageSubject']    ?? ''),
-            'popupTitle'        => (string) ($post['popupTitle']        ?? ''),
-            'popupDesc'         => (string) ($post['popupDesc']         ?? ''),
-            'buttonCaptionName' => (string) ($post['buttonCaptionName'] ?? ''),
-            'message'           => (string) ($post['message']           ?? ''),
-        ];
-
-        // DİKKAT: Grup key'e array set ediyoruz (alt keylere TEK TEK yazmıyoruz)
-        service('settings')->set('Site.Other', $payload);
-
-        // (Opsiyonel) Eskiden ayrı ayrı yazılmış alt anahtarlar varsa kafa karıştırmasın diye temizleyebilirsin:
-        // foreach (['googleSiteKey','googleSecurityKey','googleAnalytics','chatBox','whatsappStatus','phoneNumber','messageSubject','popupTitle','popupDesc','buttonCaptionName','message'] as $k) {
-        //     service('settings')->set('Site.Other.' . $k, null);
-        // }
+        // Her key'i ayrı string olarak yaz
+        $s->set('Site/Other.googleSiteKey',     (string) ($post['googleSiteKey']     ?? ''));
+        $s->set('Site/Other.googleSecurityKey', (string) ($post['googleSecurityKey'] ?? ''));
+        $s->set('Site/Other.googleAnalytics',   (string) ($post['googleAnalytics']   ?? ''));
+        $s->set('Site/Other.chatBox',           (string) ($post['chatBox']           ?? ''));
+        $s->set('Site/Other.whatsappStatus',    isset($post['whatsappStatus']) ? (string)(int)$post['whatsappStatus'] : '0');
+        $s->set('Site/Other.phoneNumber',       (string) ($post['phoneNumber']       ?? ''));
+        $s->set('Site/Other.messageSubject',    (string) ($post['messageSubject']    ?? ''));
+        $s->set('Site/Other.popupTitle',        (string) ($post['popupTitle']        ?? ''));
+        $s->set('Site/Other.popupDesc',         (string) ($post['popupDesc']         ?? ''));
+        $s->set('Site/Other.buttonCaptionName', (string) ($post['buttonCaptionName'] ?? ''));
+        $s->set('Site/Other.message',           (string) ($post['message']           ?? ''));
 
         session()->setFlashdata('message', 'Diğer Ayarlar başarıyla güncellendi.');
         session()->setFlashdata('alert-type', 'success');
+
         return redirect()->to('/admin/general/other');
     }
+
     public function logoSettings()
     {
         if (! user_can('General.General.logoSettings')) {
@@ -383,16 +352,16 @@ class General extends BaseController
             return redirect()->to('/dashboard');
         }
 
-        // setting() helper autoload değilse:
-        // helper('setting');
+        $s = service('settings');
 
-        $data['item'] = [
-            'logo'        => setting('Site.Logo.logo')       ?? '',
-            'secondLogo' => setting('Site.Logo.secondLogo') ?? '',
-            'favicon'     => setting('Site.Logo.favicon')    ?? '',
-        ];
-
-        return view('App\Modules\General\Views\general\logoSettings', $data);
+        return view('\App\Modules\General\Views\general\logoSettings', [
+            'title' => 'Logo & Favicon',
+            'item'  => [
+                'logo'       => (string) ($s->get('Setting/Logo.logo') ?? ''),
+                'secondLogo' => (string) ($s->get('Setting/Logo.secondLogo') ?? ''),
+                'favicon'    => (string) ($s->get('Setting/Logo.favicon') ?? ''),
+            ],
+        ]);
     }
     public function logoSettingsUpdate(): RedirectResponse
     {
@@ -402,32 +371,25 @@ class General extends BaseController
                 'title'   => 'Yetki Hatası',
                 'message' => 'Bu sayfayı görmeye yetkiniz yok.',
             ]);
-            return redirect()->to('/dashboard');
+            return redirect()->to('/admin/dashboard');
         }
 
-        $rules = [
-            'logo'        => 'required|max_length[255]',
-            'secondLogo' => 'required|max_length[255]',
-            'favicon'     => 'required|max_length[255]',
-        ];
-        if (! $this->validate($rules)) {
-            return redirect()->back()->with('error', implode(' ', $this->validator->getErrors()))->withInput();
-        }
+        $s = service('settings');
 
-        $post = $this->request->getPost();
+        // View'daki input name'leri ile birebir
+        $logo       = trim((string) $this->request->getPost('logo'));
+        $secondLogo = trim((string) $this->request->getPost('secondLogo'));
+        $favicon    = trim((string) $this->request->getPost('favicon'));
 
-        $payload = [
-            'logo'       => trim((string) ($post['logo']        ?? '')),
-            'secondLogo' => trim((string) ($post['secondLogo'] ?? '')),
-            'favicon'    => trim((string) ($post['favicon']     ?? '')),
-        ];
+        // Tek tek kaydet (null/boş da kaydedilebilir; istersen boşları silersin)
+        $s->set('Setting/Logo.logo',       $logo !== ''       ? $logo       : null);
+        $s->set('Setting/Logo.secondLogo', $secondLogo !== '' ? $secondLogo : null);
+        $s->set('Setting/Logo.favicon',    $favicon !== ''    ? $favicon    : null);
 
-        service('settings')->set('Site.Logo', $payload); // JSON olarak saklanır
-
-        session()->setFlashdata('message', 'Firma Logoları başarıyla güncellendi.');
-        session()->setFlashdata('alert-type', 'success');
-
-        return redirect()->to('admin/general/logo');
+        return redirect()
+            ->to("/admin/general/logo")  // route adın buysa
+            ->with('alert-type', 'success')
+            ->with('message', 'Logo ayarları kaydedildi.');
     }
     public function seoSettings()
     {
@@ -535,89 +497,6 @@ class General extends BaseController
         session()->setFlashdata('message', $message);
         session()->setFlashdata('alert-type', $type);
         return redirect()->to('/general/seo');
-    }
-    public function socialSettings1() {
-        if (! user_can('General.General.socialSettings')) {
-            session()->setFlashdata('swal', [
-                'type'    => 'error',
-                'title'   => 'Yetki Hatası',
-                'message' => 'Bu sayfayı görmeye yetkiniz yok.',
-            ]);
-            return redirect()->to('/dashboard');
-        }
-
-        $data['item'] = $this->common_model->selectOne([], 'socialSettings');
-
-        return view('App\Modules\General\Views\general\socialSettings',$data);
-
-    }
-    public function socialSettingsUpdate1()
-    {
-        if (! user_can('General.General.socialSettingsUpdate')) {
-            session()->setFlashdata('swal', [
-                'type'    => 'error',
-                'title'   => 'Yetki Hatası',
-                'message' => 'Bu sayfayı görmeye yetkiniz yok.',
-            ]);
-            return redirect()->to('/dashboard');
-        }
-
-        $facebook = $this->request->getPost('facebook');
-        $facebookUserName = $this->request->getPost('facebookUserName');
-        $instagram = $this->request->getPost('instagram');
-        $instagramUserName = $this->request->getPost('instagramUserName');
-        $twitter = $this->request->getPost('twitter');
-        $twitterUserName = $this->request->getPost('twitterUserName');
-        $youtube = $this->request->getPost('youtube');
-        $youtubeUserName = $this->request->getPost('youtubeUserName');
-        $linkedin = $this->request->getPost('linkedin');
-        $linkedinUserName = $this->request->getPost('linkedinUserName');
-
-        $db = \Config\Database::connect();
-        $builder = $db->table('socialSettings'); // Tablonuzun adı
-
-        // Kaydedilecek veri
-        $data = [
-            'facebook' => $facebook,
-            'facebookUserName' => $facebookUserName,
-            'instagram' => $instagram,
-            'instagramUserName' => $instagramUserName,
-            'twitter' => $twitter,
-            'twitterUserName' => $twitterUserName,
-            'youtube' => $youtube,
-            'youtubeUserName' => $youtubeUserName,
-            'linkedin' => $linkedin,
-            'linkedinUserName' => $linkedinUserName,
-            'updatedAt' => date('Y-m-d H:i:s'),
-            'lastUpdatedUser' => session()->get('id_user'),
-        ];
-
-        $existingRecord = $builder->getWhere(['id' => 1])->getRow();
-
-        if ($existingRecord) {
-            $builder->where('id', 1);
-            $update = $builder->update($data);
-            if ($update) {
-                session()->setFlashdata('message', 'Sosyal medya ayarları başarıyla güncellendi.');
-                session()->setFlashdata('alert-type', 'success');
-            } else {
-                session()->setFlashdata('message', 'Sosyal medya ayarları güncellenirken bir hata oluştu.');
-                session()->setFlashdata('alert-type', 'error');
-            }
-        } else {
-            $data['id'] = 1; // Varsayılan olarak ID 1 kullanılır
-            $data['created_at'] = date('Y-m-d H:i:s'); // Oluşturulma tarihi
-            $insert = $builder->insert($data);
-
-            if ($insert) {
-                session()->setFlashdata('message', 'Sosyal medya ayarları başarıyla kaydedildi.');
-                session()->setFlashdata('alert-type', 'success');
-            } else {
-                session()->setFlashdata('message', 'Sosyal medya ayarları kaydedilirken bir hata oluştu.');
-                session()->setFlashdata('alert-type', 'error');
-            }
-        }
-        return redirect()->to('/general/social');
     }
 
     public function socials()

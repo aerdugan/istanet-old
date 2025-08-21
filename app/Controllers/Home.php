@@ -13,7 +13,7 @@ class Home extends BaseController
 
     public function __construct()
     {
-        helper(['public', 'admin', 'general_helper', 'common']);
+        helper(['public', 'admin', 'general_helper', 'common','setting']);
 
         $this->common_model = new CommonModel();
 
