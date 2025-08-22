@@ -400,33 +400,29 @@ if (!function_exists('translateLongHtmlWithGPT4o2')) {
         return implode("\n", $translatedChunks);
     }
 }
-if (!function_exists('translateLongHtmlWithGPT4o')) {
-    function translateLongHtmlWithGPT4o(string $html, string $targetLang): string
-    {
-        ini_set('max_execution_time', 240);
+function translateLongHtmlWithGPT4o(string $html, string $targetLang): string
+{
+    ini_set('max_execution_time', 300);
 
-        $chunks = splitHtmlContent($html, 2500);
-        $translatedChunks = [];
+    // 1) Koru
+    [$safe, $map] = protectHtmlBlocks($html);
 
-        foreach ($chunks as $i => $chunk) {
-            log_message('debug', "Translating chunk #{$i}, length: " . mb_strlen($chunk));
+    // 2) Güvenli split
+    $chunks = splitHtmlSafely($safe, 3500);
 
-            // ✅ sadece hedef dili gönderiyoruz
-            $result = translateWithGPT4o($chunk, $targetLang);
-
-            if ($result) {
-                $translatedChunks[] = $result;
-                log_message('debug', "Chunk #{$i} translated successfully, length: " . mb_strlen($result));
-            } else {
-                log_message('error', "Chunk #{$i} translation failed");
-                $translatedChunks[] = $chunk; // fallback
-            }
-
-            usleep(300000); // 0.3 sn bekleme
-        }
-
-        return implode("\n", $translatedChunks);
+    $out = [];
+    foreach ($chunks as $i => $chunk) {
+        log_message('debug', "Translating chunk #$i, len: " . mb_strlen($chunk));
+        $res = translateWithGPT4o($chunk, $targetLang);
+        $out[] = $res ?: $chunk;
+        usleep(250000); // 0.25 sn
     }
+    $translated = implode('', $out);
+
+    // 3) Geri yükle
+    $translated = restoreHtmlBlocks($translated, $map);
+
+    return $translated;
 }
 
 if (!function_exists('generateSeoDataFromHtml')) {
@@ -857,5 +853,71 @@ if (! function_exists('getSessionLanguageCode')) {
     {
         $code = session('data_lang');
         return is_string($code) && $code !== '' ? $code : null;
+    }
+}
+
+if (!function_exists('protectHtmlBlocks')) {
+    function protectHtmlBlocks(string $html): array {
+        $map = [];
+
+        // 1) <script>...</script>
+        $html = preg_replace_callback('#<script\b[^>]*>.*?</script>#is',
+            function ($m) use (&$map) {
+                $key = '__SCRIPT_BLOCK_' . count($map) . '__';
+                $map[$key] = $m[0];
+                return $key;
+            }, $html);
+
+        // 2) <style>...</style>
+        $html = preg_replace_callback('#<style\b[^>]*>.*?</style>#is',
+            function ($m) use (&$map) {
+                $key = '__STYLE_BLOCK_' . count($map) . '__';
+                $map[$key] = $m[0];
+                return $key;
+            }, $html);
+
+        // 3) data-* attribute içerikleri (özellikle data-html)
+        $html = preg_replace_callback('#\s(data-[a-z0-9\-]+)\s*=\s*"([^"]*)"#i',
+            function ($m) use (&$map) {
+                $attr = $m[1];
+                $val  = $m[2];
+                $key  = '__DATAATTR_' . count($map) . '__';
+                $map[$key] = $attr . '="' . $val . '"';
+                // attribute’ı placeholder’a çeviriyoruz:
+                return ' ' . $key;
+            }, $html);
+
+        return [$html, $map];
+    }
+}
+
+if (!function_exists('restoreHtmlBlocks')) {
+    function restoreHtmlBlocks(string $html, array $map): string {
+        // data-attr’lar tam attribute olduğu için önce onları, sonra script/style’ı geri yazabiliriz
+        foreach ($map as $ph => $original) {
+            $html = str_replace($ph, $original, $html);
+        }
+        return $html;
+    }
+}
+if (!function_exists('splitHtmlSafely')) {
+    function splitHtmlSafely(string $html, int $limit = 4000): array {
+        // kaba ama güvenli yaklaşım: kapanış div’lerine göre parça
+        $parts = preg_split('#(</div>)#i', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $chunks = [];
+        $buf = '';
+
+        foreach ($parts as $p) {
+            // $p bazen kapanış, bazen içerik; hepsini birleştirerek ilerle
+            if (mb_strlen($buf . $p) > $limit && $buf !== '') {
+                $chunks[] = $buf;
+                $buf = '';
+            }
+            $buf .= $p;
+        }
+        if (trim($buf) !== '') $chunks[] = $buf;
+
+        // Aşırı ufaksa tek parça bırak
+        return $chunks ?: [$html];
     }
 }

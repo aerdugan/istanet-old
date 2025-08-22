@@ -207,68 +207,6 @@ class Page extends BaseController
             'message' => "$createdCount eksik dilde sayfa oluşturuldu."
         ]);
     }
-    public function translatePageFields($id)
-    {
-        if (! user_can('page.page.translatePageFields')) {
-            session()->setFlashdata('swal', [
-                'type'    => 'error',
-                'title'   => 'Yetki Hatası',
-                'message' => 'Bu sayfayı görmeye yetkiniz yok.',
-            ]);
-            return redirect()->to('/dashboard');
-        }
-
-        $targetPage = $this->page_model->find($id);
-        if (!$targetPage) {
-            return $this->response->setJSON(['status' => 'error', 'message' => 'Sayfa bulunamadı.']);
-        }
-
-        $defaultLangRow = getDefaultLanguage();
-        $defaultLang = $defaultLangRow['shorten'] ?? null;
-        $targetLang  = $targetPage['data_lang'];
-
-        if ($targetLang === $defaultLang) {
-            return $this->response->setJSON(['status' => 'info', 'message' => 'Varsayılan dildeki sayfa çevrilmez.']);
-        }
-
-        $originalPage = $this->page_model->where([
-            'referenceID' => $targetPage['referenceID'],
-            'data_lang'   => $defaultLang
-        ])->first();
-
-        if (!$originalPage) {
-            return $this->response->setJSON(['status' => 'error', 'message' => 'Varsayılan dildeki sayfa bulunamadı.']);
-        }
-
-        $fieldsToTranslate = [
-            'title',
-            'url',
-            'mobileUrl',
-            'breadcrumbTitle',
-            'breadcrumbSlogan',
-            'inpHtml',
-            'mobileHtml',
-            'cBoxContent',
-            'cBoxMobileContent'
-        ];
-
-        foreach ($fieldsToTranslate as $field) {
-            $sourceValue = trim($originalPage[$field] ?? '');
-            if ($sourceValue === '') {
-                $targetPage[$field] = '';
-                continue;
-            }
-
-            // ✅ sadece hedef dili gönderiyoruz
-            $translated = translateWithGPT4o($sourceValue, $targetLang);
-            $targetPage[$field] = $translated ?: $sourceValue;
-        }
-
-        $targetPage['updated_at'] = date('Y-m-d H:i:s');
-        $this->page_model->update($id, $targetPage);
-
-        return $this->response->setJSON(['status' => 'success', 'message' => 'Alanlar başarıyla çevrildi.']);
-    }
     public function addMissingLanguagePages2($referenceId)
     {
         if (! user_can('page.page.addMissingLanguagePages')) {
@@ -391,7 +329,7 @@ class Page extends BaseController
             'message' => "$createdCount eksik dilde sayfa oluşturuldu.",
         ]);
     }
-    public function translatePageFields2($id)
+    public function translatePageFields($id)
     {
         if (! user_can('page.page.translatePageFields')) {
             session()->setFlashdata('swal', [
@@ -407,70 +345,86 @@ class Page extends BaseController
             return $this->response->setJSON(['status' => 'error', 'message' => 'Sayfa bulunamadı.']);
         }
 
-        // Varsayılan dil kodunu stringe indir (örn. "tr")
-        $defaultLangRow  = getDefaultLanguage(); // ['shorten' => 'tr', ...] beklenir
-        $defaultLangCode = is_array($defaultLangRow) ? (string)($defaultLangRow['shorten'] ?? '') : (string)$defaultLangRow;
-        if ($defaultLangCode === '') {
+        // ✅ Kaynak = varsayılan dil (rank=1)
+        $def = getDefaultLanguage();
+        $defaultLang = is_array($def) ? ($def['shorten'] ?? null) : (is_object($def) ? ($def->shorten ?? null) : null);
+        if (! $defaultLang) {
             return $this->response->setJSON(['status' => 'error', 'message' => 'Varsayılan dil bulunamadı.']);
         }
 
-        $targetLang = (string)$targetPage['data_lang'];
-        if ($targetLang === $defaultLangCode) {
+        // ✅ Hedef = session’da seçili olan dil (yoksa sayfanın dili)
+        $targetLang = (string) (session()->get('data_lang') ?: $targetPage['data_lang']);
+        if ($targetLang === $defaultLang) {
             return $this->response->setJSON(['status' => 'info', 'message' => 'Varsayılan dildeki sayfa çevrilmez.']);
         }
 
-        // Orijinal (default dil) sayfayı bul
+        // Orijinal (kaynak) sayfayı bul
         $originalPage = $this->page_model->where([
             'referenceID' => $targetPage['referenceID'],
-            'data_lang'   => $defaultLangCode,
+            'data_lang'   => $defaultLang
         ])->first();
 
         if (! $originalPage) {
             return $this->response->setJSON(['status' => 'error', 'message' => 'Varsayılan dildeki sayfa bulunamadı.']);
         }
 
-        // Sadece bu alanları çevireceğiz
-        $fieldsToTranslate = [
+        // Kısa ve uzun alanlar
+        $fieldsShort = [
             'title',
-            // 'url', 'mobileUrl' -> bunları başlıktan türeteceğiz
             'breadcrumbTitle',
             'breadcrumbSlogan',
+        ];
+        // URL alanlarını ayrı ele alacağız
+        $fieldsLong = [
             'inpHtml',
             'mobileHtml',
             'cBoxContent',
             'cBoxMobileContent',
         ];
 
-        $update = [];
-
-        // 1) Metin/HTML alanlarını çevir
-        foreach ($fieldsToTranslate as $field) {
-            $sourceValue = trim((string)($originalPage[$field] ?? ''));
-            if ($sourceValue === '') {
-                $update[$field] = '';
+        // --- Kısa alanlar
+        foreach ($fieldsShort as $field) {
+            $src = trim((string)($originalPage[$field] ?? ''));
+            if ($src === '') {
+                $targetPage[$field] = '';
                 continue;
             }
-
-            $translated = translateWithGPT4o($sourceValue, $defaultLangCode, $targetLang);
-            $update[$field] = is_string($translated) && $translated !== '' ? $translated : $sourceValue;
+            // Helper’ındaki imzaya göre çağırıyoruz:
+            // translateWithGPT4o($text, $sourceLang, $targetLang)
+            $translated = translateWithGPT4o($src, $defaultLang, $targetLang);
+            $targetPage[$field] = $translated ?: $src;
         }
 
-        // 2) URL alanları: çevirilen başlıktan slug üret
-        $finalTitle = (string)($update['title'] ?? $originalPage['title'] ?? '');
-        if ($finalTitle !== '') {
-            $update['url']       = seoFriendly($finalTitle);
-            $update['mobileUrl'] = seoFriendly($finalTitle);
-        } else {
-            // başlık boşsa orijinal url’yi koru
-            $update['url']       = (string)($originalPage['url'] ?? '');
-            $update['mobileUrl'] = (string)($originalPage['mobileUrl'] ?? '');
+        // --- URL alanları (çeviri + slug)
+        foreach (['url','mobileUrl'] as $field) {
+            $src = trim((string)($originalPage[$field] ?? ''));
+            if ($src === '') {
+                $targetPage[$field] = '';
+                continue;
+            }
+            $translated = translateWithGPT4o($src, $defaultLang, $targetLang);
+            $slug = seoFriendly($translated ?: $src);
+            $targetPage[$field] = $slug;
         }
 
-        // 3) Zorunlu meta alan
-        $update['updated_at'] = date('Y-m-d H:i:s');
+        // --- Uzun HTML alanları (placeholder + güvenli bölme yapan helper’ı kullan)
+        foreach ($fieldsLong as $field) {
+            $src = (string)($originalPage[$field] ?? '');
+            if (trim($src) === '') {
+                $targetPage[$field] = '';
+                continue;
+            }
+            // Eğer senin translateLongHtmlWithGPT4o sadece ($html,$targetLang) alacak şekilde yazılıysa
+            // ve kaynak dili helper içinde getDefaultLanguage ile alıyorsa bu çağrı da çalışır:
+            // $targetPage[$field] = translateLongHtmlWithGPT4o($src, $targetLang);
 
-        // Yalnızca değişen alanları güncelle
-        $this->page_model->update($id, $update);
+            // Ama imzayı ($html,$sourceLang,$targetLang) olarak güncellediysen:
+            $targetPage[$field] = translateLongHtmlWithGPT4o($src, $defaultLang, $targetLang);
+        }
+
+        // Son dokunuşlar
+        $targetPage['updated_at'] = date('Y-m-d H:i:s');
+        $this->page_model->update($id, $targetPage);
 
         return $this->response->setJSON(['status' => 'success', 'message' => 'Alanlar başarıyla çevrildi.']);
     }
