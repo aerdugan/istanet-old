@@ -40,18 +40,7 @@ if (!is_array($socials)) $socials = [];
                 <div class="elm-socialicons text-center">
                     <ul class="elm-social-icons sc--colored sh--rounded clearfix">
                         <li class="title">GET SOCIAL</li>
-                        <?php foreach ($socials as $row):
-                            $platform = trim((string)($row['platform'] ?? ''));
-                            $icon     = trim((string)($row['icon'] ?? '')); // örn: "fab fa-facebook-f"
-                            $url      = trim((string)($row['url'] ?? '#'));
-                            if ($url === '' && $platform === '') continue;
-                            ?>
-                            <li>
-                                <a href="<?= esc($url) ?>" target="_blank" title="<?= esc($platform) ?>">
-                                    <i class="<?= esc($icon) ?>"></i>
-                                </a>
-                            </li>
-                        <?php endforeach; ?>
+                        <?php echo view('public/inc/socialSettings.php'); ?>
                     </ul>
                 </div>
             </div>

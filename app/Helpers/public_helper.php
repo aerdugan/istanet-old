@@ -1,5 +1,6 @@
 <?php
 use CodeIgniter\Settings\Settings;
+use App\Models\CommonModel;
 
 if (!function_exists('getThemeSettings')) {
     function getThemeSettings()
@@ -248,7 +249,6 @@ if (! function_exists('getFrontEndLanguageMenuItem')) {
 }
 
 
-use App\Models\CommonModel;
 
 if (!function_exists('resolveLocalizedPath')) {
     /**

@@ -1,11 +1,30 @@
 <?php $themeSettings = getThemeSettings(); ?>
+<?php
+// URL normalize
+$norm = static function (?string $v): string {
+    $v = (string)($v ?? '');
+    if ($v === '') return '';
+    if (preg_match('#^https?://#i', $v)) return $v;
+    return base_url(ltrim($v, '/'));
+};
 
-<?php if ($themeSettings->setLogo == 1){ ?>
-    <a href="<?php echo base_url(''); ?>" title="<?php echo setting('site.logo.Company_name'); ?>">
-        <img style="max-height: 65px !important;" src="<?php echo setting('site.logo.logo');; ?>" alt="<?php echo setting('site.logo.Company_name');; ?>" title="<?php echo setting('site.logo.company_name');; ?>" />
+// Firma adı (alt/title)
+$companyName = (string) (setting('Site/Company.company_name') ?: setting('Site/Company.companyLongName') ?: '');
+
+// Hangi logo kullanılacak?
+$selectedPath = ($themeSettings->setLogo == 2)
+    ? (string) setting('Setting/Logo.secondLogo')
+    : (string) setting('Setting/Logo.logo');
+
+$logoSrc = $norm($selectedPath);
+?>
+
+<?php if ($logoSrc): ?>
+    <a href="<?= site_url('/') ?>" title="<?= esc($companyName) ?>">
+        <img style="max-height:45px"
+             src="<?= esc($logoSrc) ?>"
+             class="logo-img"
+             alt="<?= esc($companyName) ?>"
+             title="<?= esc($companyName) ?>">
     </a>
-<?php } else if ($themeSettings->setLogo == 2){  ?>
-    <a href="<?php echo base_url(''); ?>" title="<?php echo setting('site.logo.company_name');; ?>">
-        <img style="max-height: 65px !important;"  src="<?php echo setting('site.logo.company_name');; ?>" class="logo-img" alt="<?php echo setting('site.logo.company_name'); ?>" title="<?php echo setting('site.logo.company_name');; ?>" />
-    </a>
-<?php } ?>
+<?php endif; ?>

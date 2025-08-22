@@ -108,19 +108,7 @@ if (!is_array($socials)) $socials = [];
                 <div class="bottom clearfix">
                     <ul class="social-icons sc--clean clearfix">
                         <li class="title">GET SOCIAL</li>
-                        <?php foreach ($socials as $row):
-                            $platform = trim((string)($row['platform'] ?? ''));
-                            $icon     = trim((string)($row['icon'] ?? '')); // örn: "fab fa-facebook-f"
-                            $url      = trim((string)($row['url'] ?? '#'));
-                            if ($url === '' && $platform === '') continue;
-                            ?>
-                            <li>
-                                <a href="<?= esc($url) ?>"
-                                   target="_blank"
-                                   class="<?= esc($icon) ?>"
-                                   title="<?= esc($platform) ?>"></a>
-                            </li>
-                        <?php endforeach; ?>
+                        <?php echo view('public/inc/socialSettings.php'); ?>
                     </ul>
                     <div class="copyright">
                         <?php echo view('public/inc/footerLogoSettings.php'); ?>
