@@ -351,7 +351,7 @@
                                     <div class="preview"><img src="<?php echo $item->breadcrumbImage ;?>" alt="" height="60px"></div>
                                 </div>
                                 <div class="modal-files">
-                                    <iframe src="<?= site_url("files/getModals") ?>"></iframe>
+                                    <iframe src="<?= site_url("admin/files/getModals") ?>"></iframe>
                                 </div>
                             </div>
                         </div>

@@ -45,7 +45,7 @@ if ($items->rank == 1) {
 ?>
 <?= $this->endSection() ?>
 <?= $this->section('breadcrumb') ?>
-<?php if (isset($items) && $items->rank > 1 && isset($items->breadcrumbStatus) && $items->breadcrumbStatus == 1): ?>
+<?php if (isset($items) && $items->rank > 1 && isset($items->setBreadcrumbStatus) && $items->setBreadcrumbStatus == 1): ?>
     <?php if (isset($themeSettings) && isset($themeSettings->setBreadcrumb)): ?>
         <?php
         $breadcrumbPath = "/template/breadCrumb/" . $themeSettings->setBreadcrumb;
@@ -64,16 +64,6 @@ if ($items->rank == 1) {
     }
 }
 ?>
-
-<?php if (isset($items) && $items->isWebEditor == 1) { ?>
-    <div id="container-builder" class="container-builder" <?php echo ($items->rank == 1) ? '' : 'style="padding-top:50px"'; ?>>
-        <?php echo $items->inpHtml; ?>
-    </div>
-<?php } elseif (isset($items) && $items->isWebEditor == 0) { ?>
-    <div id="isContentBox" class="is-wrapper" style="opacity: 1 !important;">
-        <?php echo $items->cBoxContent; ?>
-    </div>
-<?php } ?>
 
 <?php if (isset($items) && $items->isWebEditor == 1) { ?>
     <div id="container-builder" class="container-builder" <?php echo ($items->rank == 1) ? '' : 'style="padding-top:50px"'; ?>>

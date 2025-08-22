@@ -232,7 +232,7 @@ if (! function_exists('getFrontEndLanguageMenuItem')) {
             $active = $code === $current ? ' active' : '';
             $items .= '<li class="toplang-item' . $active . '">'
                 .   '<a href="' . esc($href) . '">'
-                .       '<img src="' . base_url('images/'.$code.'.svg') . '" alt="' . esc($title) . '" class="toplang-flag"> '
+                .       '<img src="' . base_url('mare/flags/'.$code.'.svg') . '" alt="' . esc($title) . '" class="toplang-flag"> '
                 .       esc($title)
                 .   '</a>'
                 . '</li>';
@@ -360,3 +360,4 @@ if (! function_exists('setting')) {
         $setting->set($key, $value);
     }
 }
+

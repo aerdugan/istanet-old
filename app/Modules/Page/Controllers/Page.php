@@ -124,7 +124,8 @@ class Page extends BaseController
             return redirect()->to('/dashboard');
         }
 
-        $defaultLang = getDefaultLanguage();
+        $defaultLangRow = getDefaultLanguage();
+        $defaultLang = $defaultLangRow['shorten'] ?? null;
         $activeLanguages = getActiveLanguages();
         $onlyLang = $this->request->getGet('only');
 
@@ -137,7 +138,7 @@ class Page extends BaseController
 
         $originalPage = $builder->getWhere([
             'referenceID' => $referenceId,
-            'data_lang' => $defaultLang
+            'data_lang'   => $defaultLang
         ])->getRowArray();
 
         if (!$originalPage) {
@@ -175,7 +176,7 @@ class Page extends BaseController
 
             $exists = $builder->getWhere([
                 'referenceID' => $referenceId,
-                'data_lang' => $langCode
+                'data_lang'   => $langCode
             ])->getRowArray();
 
             if ($exists) continue;
@@ -185,16 +186,16 @@ class Page extends BaseController
                 $newData[$field] = $originalPage[$field] ?? null;
             }
 
-            // 🔁 Sadece bu alanlar çevrilecek
-            $newData['title'] = translateWithGPT4o($originalPage['title'], $defaultLang, $langCode) ?: $originalPage['title'];
-            $newData['url'] = seoFriendly(translateWithGPT4o($originalPage['url'], $defaultLang, $langCode) ?: $originalPage['url']);
+            // ✅ sadece hedef dil parametresi veriyoruz
+            $newData['title']     = translateWithGPT4o($originalPage['title'], $langCode) ?: $originalPage['title'];
+            $newData['url']       = seoFriendly(translateWithGPT4o($originalPage['url'], $langCode) ?: $originalPage['url']);
             $newData['mobileUrl'] = seoFriendly($newData['title']);
-            // Zorunlu alanlar
-            $newData['referenceID'] = $originalId; // ✅ Orijinal sayfanın ID'si
-            $newData['data_lang'] = $langCode;
-            $newData['isActive'] = 0;
-            $newData['createdAt'] = date('Y-m-d H:i:s');
-            $newData['updated_at'] = date('Y-m-d H:i:s');
+
+            $newData['referenceID'] = $originalId;
+            $newData['data_lang']   = $langCode;
+            $newData['isActive']    = 0;
+            $newData['createdAt']   = date('Y-m-d H:i:s');
+            $newData['updated_at']  = date('Y-m-d H:i:s');
 
             if ($builder->insert($newData)) {
                 $createdCount++;
@@ -216,14 +217,15 @@ class Page extends BaseController
             ]);
             return redirect()->to('/dashboard');
         }
-        $targetPage = $this->page_model->find($id);
 
+        $targetPage = $this->page_model->find($id);
         if (!$targetPage) {
             return $this->response->setJSON(['status' => 'error', 'message' => 'Sayfa bulunamadı.']);
         }
 
-        $defaultLang = getDefaultLanguage();
-        $targetLang = $targetPage['data_lang'];
+        $defaultLangRow = getDefaultLanguage();
+        $defaultLang = $defaultLangRow['shorten'] ?? null;
+        $targetLang  = $targetPage['data_lang'];
 
         if ($targetLang === $defaultLang) {
             return $this->response->setJSON(['status' => 'info', 'message' => 'Varsayılan dildeki sayfa çevrilmez.']);
@@ -252,19 +254,223 @@ class Page extends BaseController
 
         foreach ($fieldsToTranslate as $field) {
             $sourceValue = trim($originalPage[$field] ?? '');
-
             if ($sourceValue === '') {
                 $targetPage[$field] = '';
                 continue;
             }
 
-            $translated = translateWithGPT4o($sourceValue, $defaultLang, $targetLang);
+            // ✅ sadece hedef dili gönderiyoruz
+            $translated = translateWithGPT4o($sourceValue, $targetLang);
             $targetPage[$field] = $translated ?: $sourceValue;
         }
 
-
         $targetPage['updated_at'] = date('Y-m-d H:i:s');
         $this->page_model->update($id, $targetPage);
+
+        return $this->response->setJSON(['status' => 'success', 'message' => 'Alanlar başarıyla çevrildi.']);
+    }
+    public function addMissingLanguagePages2($referenceId)
+    {
+        if (! user_can('page.page.addMissingLanguagePages')) {
+            session()->setFlashdata('swal', [
+                'type'    => 'error',
+                'title'   => 'Yetki Hatası',
+                'message' => 'Bu sayfayı görmeye yetkiniz yok.',
+            ]);
+            return redirect()->to('/dashboard');
+        }
+
+        // Varsayılan dili string koda çevir (örn. "tr")
+        $defaultLangRow  = getDefaultLanguage(); // ['shorten'=>'tr', ...] beklenir
+        $defaultLangCode = is_array($defaultLangRow) ? (string)($defaultLangRow['shorten'] ?? '') : (string)$defaultLangRow;
+        if ($defaultLangCode === '') {
+            return $this->response->setJSON(['status'=>'error','message'=>'Varsayılan dil bulunamadı.']);
+        }
+
+        $activeLanguages = getActiveLanguages(); // [['shorten'=>'tr'], ['shorten'=>'en'], ...]
+        $onlyLang        = (string) $this->request->getGet('only');
+
+        if ($onlyLang !== '' && !in_array($onlyLang, array_column((array)$activeLanguages, 'shorten'), true)) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Geçersiz dil kodu']);
+        }
+
+        $db      = \Config\Database::connect();
+        $builder = $db->table('pages');
+
+        // Orijinal sayfayı (default dil) bul
+        $originalPage = $builder->getWhere([
+            'referenceID' => $referenceId,
+            'data_lang'   => $defaultLangCode,
+        ])->getRowArray();
+
+        if (! $originalPage) {
+            return $this->response->setJSON([
+                'status'  => 'error',
+                'message' => 'Orijinal sayfa bulunamadı.'
+            ]);
+        }
+
+        $createdCount = 0;
+
+        // Kopyalanacak alanlar
+        $fieldsToCopy = [
+            'title',
+            'url',
+            'mobileUrl',
+            'breadcrumbStatus',
+            'breadcrumbImageStatus',
+            'breadcrumbImage',
+            'isHeader',
+            'isFooter',
+            'isMobileFooter',
+            'isMobile',
+            'isWebEditor',
+            'isMobileEditor',
+            'createdAt',
+            'updated_at',
+        ];
+
+        // Opsiyonel: Çeviriyi kapatmak için ?noai=1
+        $doTranslate = $this->request->getGet('noai') ? false : true;
+
+        foreach ((array)$activeLanguages as $lang) {
+            $langCode = (string)($lang['shorten'] ?? '');
+            if ($langCode === '' || $langCode === $defaultLangCode) continue;
+            if ($onlyLang !== '' && $langCode !== $onlyLang) continue;
+
+            // Zaten var mı?
+            $exists = $builder->getWhere([
+                'referenceID' => $referenceId,
+                'data_lang'   => $langCode,
+            ])->getRowArray();
+
+            if ($exists) continue;
+
+            // Kopya veri
+            $newData = [];
+            foreach ($fieldsToCopy as $field) {
+                $newData[$field] = $originalPage[$field] ?? null;
+            }
+
+            // Sadece gerekli alanları çevir
+            $srcTitle = (string)($originalPage['title'] ?? '');
+            $srcUrl   = (string)($originalPage['url'] ?? '');
+
+            if ($doTranslate && $srcTitle !== '') {
+                $trTitle = translateWithGPT4o($srcTitle, $defaultLangCode, $langCode);
+                if (is_string($trTitle) && $trTitle !== '') {
+                    $newData['title'] = $trTitle;
+                }
+            }
+
+            if ($doTranslate && $srcUrl !== '') {
+                $trUrl = translateWithGPT4o($srcUrl, $defaultLangCode, $langCode);
+                if (is_string($trUrl) && $trUrl !== '') {
+                    $newData['url'] = seoFriendly($trUrl);
+                }
+            }
+
+            // mobileUrl başlık bazlı
+            $newData['mobileUrl'] = seoFriendly((string)$newData['title']);
+
+            // Zorunlu alanlar
+            // Not: referans grubunu korumak için referenceID aynen dışarıdan gelen $referenceId ile devam eder.
+            $newData['referenceID'] = $referenceId;
+            $newData['data_lang']   = $langCode;
+            $newData['isActive']    = 0;
+            $newData['createdAt']   = date('Y-m-d H:i:s');
+            $newData['updated_at']  = date('Y-m-d H:i:s');
+
+            if ($builder->insert($newData)) {
+                $createdCount++;
+            }
+        }
+
+        return $this->response->setJSON([
+            'status'  => 'success',
+            'message' => "$createdCount eksik dilde sayfa oluşturuldu.",
+        ]);
+    }
+    public function translatePageFields2($id)
+    {
+        if (! user_can('page.page.translatePageFields')) {
+            session()->setFlashdata('swal', [
+                'type'    => 'error',
+                'title'   => 'Yetki Hatası',
+                'message' => 'Bu sayfayı görmeye yetkiniz yok.',
+            ]);
+            return redirect()->to('/dashboard');
+        }
+
+        $targetPage = $this->page_model->find($id);
+        if (! $targetPage) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Sayfa bulunamadı.']);
+        }
+
+        // Varsayılan dil kodunu stringe indir (örn. "tr")
+        $defaultLangRow  = getDefaultLanguage(); // ['shorten' => 'tr', ...] beklenir
+        $defaultLangCode = is_array($defaultLangRow) ? (string)($defaultLangRow['shorten'] ?? '') : (string)$defaultLangRow;
+        if ($defaultLangCode === '') {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Varsayılan dil bulunamadı.']);
+        }
+
+        $targetLang = (string)$targetPage['data_lang'];
+        if ($targetLang === $defaultLangCode) {
+            return $this->response->setJSON(['status' => 'info', 'message' => 'Varsayılan dildeki sayfa çevrilmez.']);
+        }
+
+        // Orijinal (default dil) sayfayı bul
+        $originalPage = $this->page_model->where([
+            'referenceID' => $targetPage['referenceID'],
+            'data_lang'   => $defaultLangCode,
+        ])->first();
+
+        if (! $originalPage) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Varsayılan dildeki sayfa bulunamadı.']);
+        }
+
+        // Sadece bu alanları çevireceğiz
+        $fieldsToTranslate = [
+            'title',
+            // 'url', 'mobileUrl' -> bunları başlıktan türeteceğiz
+            'breadcrumbTitle',
+            'breadcrumbSlogan',
+            'inpHtml',
+            'mobileHtml',
+            'cBoxContent',
+            'cBoxMobileContent',
+        ];
+
+        $update = [];
+
+        // 1) Metin/HTML alanlarını çevir
+        foreach ($fieldsToTranslate as $field) {
+            $sourceValue = trim((string)($originalPage[$field] ?? ''));
+            if ($sourceValue === '') {
+                $update[$field] = '';
+                continue;
+            }
+
+            $translated = translateWithGPT4o($sourceValue, $defaultLangCode, $targetLang);
+            $update[$field] = is_string($translated) && $translated !== '' ? $translated : $sourceValue;
+        }
+
+        // 2) URL alanları: çevirilen başlıktan slug üret
+        $finalTitle = (string)($update['title'] ?? $originalPage['title'] ?? '');
+        if ($finalTitle !== '') {
+            $update['url']       = seoFriendly($finalTitle);
+            $update['mobileUrl'] = seoFriendly($finalTitle);
+        } else {
+            // başlık boşsa orijinal url’yi koru
+            $update['url']       = (string)($originalPage['url'] ?? '');
+            $update['mobileUrl'] = (string)($originalPage['mobileUrl'] ?? '');
+        }
+
+        // 3) Zorunlu meta alan
+        $update['updated_at'] = date('Y-m-d H:i:s');
+
+        // Yalnızca değişen alanları güncelle
+        $this->page_model->update($id, $update);
 
         return $this->response->setJSON(['status' => 'success', 'message' => 'Alanlar başarıyla çevrildi.']);
     }

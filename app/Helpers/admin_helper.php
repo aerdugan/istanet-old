@@ -158,7 +158,91 @@ function sweetAlert2()
 }
 
 if (!function_exists('translateWithGPT4o')) {
-    function translateWithGPT4o(string $text, string $sourceLang, string $targetLang): ?string
+    function translateWithGPT4o(string $text, string $targetLang): ?string
+    {
+        $defaultLangRow = getDefaultLanguage();
+        if (!$defaultLangRow || empty($defaultLangRow['shorten'])) {
+            log_message('error', 'Varsayılan dil bulunamadı.');
+            return null;
+        }
+        $sourceLang = $defaultLangRow['shorten']; // ✅ her zaman rank=1 dil
+
+        $apiKey = getenv('OPENAI_API_KEY');
+        if (empty($apiKey)) {
+            log_message('error', 'OpenAI API key missing.');
+            return null;
+        }
+
+        $url = 'https://api.openai.com/v1/chat/completions';
+
+        $userPrompt = <<<EOT
+Aşağıdaki HTML içeriği kaynak dilde ({$sourceLang}) yazılmıştır. Hedef dil: {$targetLang}.
+
+❗️ Lütfen sadece kullanıcıya görünen metinleri çevir.
+‼️ HTML etiketlerine (<div>, <p>, <span>, <img>, class, id, href, style, script vb.) dokunma.
+🔒 Yapıyı, boşlukları ve HTML düzenini koru.
+
+[Çevrilecek içerik aşağıdadır]
+$text
+EOT;
+
+        $systemPrompt = <<<SYS
+You are a professional HTML translator.
+Translate only visible human-readable text from {$sourceLang} to {$targetLang}.
+Do not alter HTML tags, attributes, CSS, or JavaScript.
+Keep formatting and structure untouched.
+SYS;
+
+        $postData = [
+            'model' => 'gpt-4o',
+            'messages' => [
+                ['role' => 'system', 'content' => $systemPrompt],
+                ['role' => 'user', 'content' => $userPrompt]
+            ],
+            'temperature' => 0.2,
+            'max_tokens' => 4000,
+        ];
+
+        $headers = [
+            'Authorization: Bearer ' . $apiKey,
+            'Content-Type: application/json'
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData, JSON_UNESCAPED_UNICODE));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 240);
+
+        $response = curl_exec($ch);
+        $error = curl_error($ch);
+        $httpStatus = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($error || $httpStatus !== 200) {
+            log_message('error', "OpenAI Error: HTTP $httpStatus - $error - $response");
+            return null;
+        }
+
+        $responseData = json_decode($response, true);
+        $translated = $responseData['choices'][0]['message']['content'] ?? null;
+
+        if ($translated) {
+            $translated = preg_replace('/^\[.*?\]\s*/s', '', $translated);
+            $translated = preg_replace('/^```html\s*/i', '', $translated);
+            $translated = preg_replace('/```$/', '', $translated);
+        }
+
+        if ($translated && substr_count($text, '<') !== substr_count($translated, '<')) {
+            log_message('error', 'Tag mismatch after translation! Tag sayısı uyuşmuyor.');
+        }
+
+        return $translated;
+    }
+}
+if (!function_exists('translateWithGPT4o1')) {
+    function translateWithGPT4o1(string $text, string $sourceLang, string $targetLang): ?string
     {
         $apiKey = getenv('OPENAI_API_KEY');
         if (empty($apiKey)) {
@@ -263,8 +347,8 @@ if (!function_exists('splitHtmlContent')) {
         return $chunks;
     }
 }
-if (!function_exists('translateLongHtmlWithGPT4o')) {
-    function translateLongHtmlWithGPT4o(string $html, string $targetLang): string
+if (!function_exists('translateLongHtmlWithGPT4o2')) {
+    function translateLongHtmlWithGPT4o2(string $html, string $targetLang): string
     {
         ini_set('max_execution_time', 240);
         $chunks = splitHtmlContent($html, 2500);
@@ -288,6 +372,63 @@ if (!function_exists('translateLongHtmlWithGPT4o')) {
         return implode("\n", $translatedChunks);
     }
 }
+if (!function_exists('translateLongHtmlWithGPT4o2')) {
+    function translateLongHtmlWithGPT4o2(string $html, string $targetLang): string
+    {
+        ini_set('max_execution_time', 240);
+
+        $sourceLang = getDefaultLanguage(); // ✅ her zaman varsayılan dil
+        $chunks = splitHtmlContent($html, 2500);
+        $translatedChunks = [];
+
+        foreach ($chunks as $i => $chunk) {
+            log_message('debug', "Translating chunk #{$i}, length: " . mb_strlen($chunk));
+
+            $result = translateWithGPT4o($chunk, $sourceLang, $targetLang); // ✅ doğru parametre
+
+            if ($result) {
+                $translatedChunks[] = $result;
+                log_message('debug', "Chunk #{$i} translated successfully, length: " . mb_strlen($result));
+            } else {
+                log_message('error', "Chunk #{$i} translation failed");
+                $translatedChunks[] = $chunk; // fallback
+            }
+
+            usleep(300000); // 0.3 sn bekleme
+        }
+
+        return implode("\n", $translatedChunks);
+    }
+}
+if (!function_exists('translateLongHtmlWithGPT4o')) {
+    function translateLongHtmlWithGPT4o(string $html, string $targetLang): string
+    {
+        ini_set('max_execution_time', 240);
+
+        $chunks = splitHtmlContent($html, 2500);
+        $translatedChunks = [];
+
+        foreach ($chunks as $i => $chunk) {
+            log_message('debug', "Translating chunk #{$i}, length: " . mb_strlen($chunk));
+
+            // ✅ sadece hedef dili gönderiyoruz
+            $result = translateWithGPT4o($chunk, $targetLang);
+
+            if ($result) {
+                $translatedChunks[] = $result;
+                log_message('debug', "Chunk #{$i} translated successfully, length: " . mb_strlen($result));
+            } else {
+                log_message('error', "Chunk #{$i} translation failed");
+                $translatedChunks[] = $chunk; // fallback
+            }
+
+            usleep(300000); // 0.3 sn bekleme
+        }
+
+        return implode("\n", $translatedChunks);
+    }
+}
+
 if (!function_exists('generateSeoDataFromHtml')) {
     function generateSeoDataFromHtml(string $htmlContent, string $targetLang = 'en'): array
     {
@@ -572,6 +713,29 @@ function getFolderNames($path)
     }
 
     return $folders;
+}
+
+
+if (! function_exists('getActiveLanguages')) {
+    function getActiveLanguages(): array
+    {
+        return model(LanguageModel::class)
+            ->select('id,title,shorten,rank,isActive')
+            ->where('isActive', 1)
+            ->orderBy('rank', 'ASC')
+            ->findAll();
+    }
+}
+
+if (! function_exists('getDefaultLanguage')) {
+    function getDefaultLanguage(): ?array
+    {
+        return model(LanguageModel::class)
+            ->select('id,title,shorten,rank,isActive')
+            ->where('isActive', 1)
+            ->where('rank', 1)
+            ->first(); // sadece tek bir kayıt döndürür
+    }
 }
 
 
