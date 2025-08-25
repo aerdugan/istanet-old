@@ -23,7 +23,7 @@
         <input type="hidden" name="id" value="<?php echo @$page['id'] ?>">
         <input type="hidden" name="inpHtml">
         <button type="button" id="btnSave" class="classic" style="width:70px;height:50px;background-color: #17C653;color: white">Kaydet</button>
-        <button type="button" onclick="window.location.href='<?= base_url('admin/page/updateForm/' . $page['id']) ?>'" class="classic" style="width:70px;height:50px;background-color: #F8285A;color: white">
+        <button type="button" onclick="window.location.href='<?= base_url('/admin/page/updateForm/' . $page['id']) ?>'" class="classic" style="width:70px;height:50px;background-color: #F8285A;color: white">
         İptal
         </button>
     </form>
@@ -57,28 +57,28 @@
         panelReverse: false,
         filesOnly: true,
 
-        listFilesUrl: `/admin/files/listFiles`,
-        listFoldersUrl: `/admin/files/listFolders`,
-        deleteFilesUrl: `/admin/files/deleteFile`,
-        moveFilesUrl: `/admin/files/moveFile`,
-        createFolderUrl: `/admin/files/createFolder`,
-        uploadFilesUrl: `/admin/files/fileUpload`,
-        renameFileUrl: `/admin/files/renameFile`,
-        getMmodelsUrl: `/admin/files/getModels`,
-        textToImageUrl: `/admin/files/textToImage`,
-        upscaleImageUrl: `/admin/files/upscaleImage`,
-        controlNetUrl: `/admin/files/controlNet`,
-        saveTextUrl: `/admin/files/saveText`,
+        listFilesUrl: `/files/listFiles`,
+        listFoldersUrl: `/files/listFolders`,
+        deleteFilesUrl: `/files/deleteFile`,
+        moveFilesUrl: `/files/moveFile`,
+        createFolderUrl: `/files/createFolder`,
+        uploadFilesUrl: `/files/fileUpload`,
+        renameFileUrl: `/files/renameFile`,
+        getMmodelsUrl: `/files/getModels`,
+        textToImageUrl: `/files/textToImage`,
+        upscaleImageUrl: `/files/upscaleImage`,
+        controlNetUrl: `/files/controlNet`,
+        saveTextUrl: `/files/saveText`,
 
 
 
 
-        imageSelect: '/admin/files/fileManagerFiles',
-        videoSelect: '/admin/files/fileManagerFiles',
-        audioSelect: '/admin/files/fileManagerFiles',
-        fileSelect: '/admin/files/fileManagerFiles',
-        mediaSelect: '/admin/files/fileManagerFiles',
-        mediaHandler: '<?php echo base_url("page/saveMedia")?>',
+        imageSelect: '/files/fileManagerFiles',
+        videoSelect: '/files/fileManagerFiles',
+        audioSelect: '/files/fileManagerFiles',
+        fileSelect: '/files/fileManagerFiles',
+        mediaSelect: '/files/fileManagerFiles',
+        mediaHandler: '<?php echo base_url("/admin/page/saveMedia")?>',
         plugins: [
             { name: 'preview', showInMainToolbar: true, showInElementToolbar: true },
             { name: 'wordcount', showInMainToolbar: true, showInElementToolbar: true },
@@ -110,7 +110,7 @@
     });
 
     $('#btnSave').click(function(event) {
-        builder.saveImages('<?php echo site_url('/adminpage/saveImage') ?>', function(){
+        builder.saveImages('<?php echo site_url('/admin/page/saveImage') ?>', function(){
             $('#form [name="inpHtml"]').val(builder.html());
             $('#form').submit();
         });

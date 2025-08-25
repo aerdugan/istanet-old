@@ -6,18 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <link rel="shortcut icon" href="#">
-
     <link href="<?= setContentBox() ?>/contentbuilder/contentbuilder.css" rel="stylesheet" type="text/css" />
     <link href="<?= setContentBox() ?>/contentbox/contentbox.css" rel="stylesheet">
-
     <style>
-        /* Switch the device buttons to save space on smaller screen */
-        @media all and (max-width: 1380wpx) {
+        @media all and (max-width: 1380px) {
             .custom-topbar .btn-device-desktop,
             .custom-topbar .btn-device-tablet,
             .custom-topbar .btn-device-tablet-landscape,
             .custom-topbar .btn-device-mobile {display:none !important} /* Hide the topbar buttons */
-
             .is-responsive-toolbar {display:inline-flex !important} /* Show the default buttons */
         }
         .topbar-shadow {
@@ -29,8 +25,8 @@
             box-shadow: rgba(0, 0, 0, 0.04) 0px 5px 5px 0px;
         }
     </style>
-    <?=$page['cBoxMobileMainCss']?>
-    <?=$page['cBoxMobileSectionCss']?>
+    <?=$page['cBoxMainCss']?>
+    <?=$page['cBoxSectionCss']?>
 </head>
 <body>
 
@@ -39,7 +35,6 @@
         <img src="/uploads/istanetorj.png" width="120px" alt="">
     </div>
     <div>
-        <!-- custom buttons here -->
         <button class="btn-back" title="Back">
             <svg><use xlink:href="#icon-back"></use></svg>
             <span>Back</span>
@@ -59,6 +54,7 @@
             <svg><use xlink:href="#icon-save"></use></svg>
             <span>Save</span>
         </button>
+
         <button class="btn-publish" title="Publish">
             <svg><use xlink:href="#icon-publish"></use></svg>
             <span>Publish</span>
@@ -66,7 +62,6 @@
 
     </div>
     <div>
-        <!-- custom buttons here -->
         <button class="btn-device-desktop-large" data-device="desktop-lg" title="Desktop - Large Screen">
             <svg style="width:18px;height:18px;"><use xlink:href="#icon-device-desktop"></use></svg>
         </button>
@@ -85,23 +80,17 @@
         <button class="btn-fullview" data-device="fullview" title="Full View">
             <svg  style="width:18px;height:18px;"><use xlink:href="#icon-fullview"></use></svg>
         </button>
-
         <div class="separator"></div>
-
         <button class="btn-download" title="Download">
             <svg><use xlink:href="#icon-download"></use></svg>
         </button>
-
         <button class="btn-html" title="HTML">
             <svg><use xlink:href="#icon-code"></use></svg>
         </button>
-
         <button class="btn-preview" title="Preview">
             <svg><use xlink:href="#icon-eye"></use></svg>
         </button>
-
         <div class="separator"></div>
-
         <button class="btn-togglepanel" data-button="togglepanel" title="Toggle Edit Panel"> <!-- To enable state, add:  data-state="togglepanel" -->
             <svg><use xlink:href="#icon-pencil"></use></svg>
         </button>
@@ -110,16 +99,15 @@
 <div class="topbar-shadow"></div>
 
 <div class="is-wrapper" style="opacity:0">
-    <?=$page['cBoxMobileContent']?>
+    <?=$page['cBoxContent']?>
 </div>
 
 <!-- Required js for editing (not needed in production) -->
-<script src="https://cdn.istanet.com/cBox/cBox5830/assets/styles/023.pngcontentbox/lang/en.js"></script>
+<script src="<?= setContentBox() ?>contentbox/lang/en.js"></script>
 <script src="<?= setContentBox() ?>contentbox/contentbox.min.js"></script>
 
-
+<?php $lang = service('request')->getLocale(); ?>
 <script>
-
     var intervalId, previousHtml; //Used for Auto Save
 
     localStorage.removeItem('_zoom'); // Reset zoom
@@ -136,14 +124,13 @@
         // disablePageShift: true,
         iframeSrc: '/admin/page/content-box-page-blank',
         zoom: 1,
-        screenMode: 'mobile', // or desktop
+        screenMode: 'desktop', // or desktop
         topSpace: true, // to give a space on top for custom toolbar
         iframeCentered: true,
         htmlButton: true, // HTML button on left sidebar
         undoRedoButtons: true, // Undo & redo buttons on control panel
         toggleDeviceButton: false, // Toggle device button on control panel
         deviceButtons: false, // Multiple device buttons on frame
-
 
         sendCommandUrl: '/admin/page/send-command',
         AIToolbar: false,
@@ -157,23 +144,18 @@
             clear: ['clear', 'erase']
         },
 
-        // If using DeepGram for speech recognition, specify the speechTranscribeUrl.
-        // speechTranscribeUrl: 'ws://localhost:3002',
-        // The server implementation for ws://localhost:3002 can be found in server.js (Node.js code)
-
-        // Enabling AI image generation
-        listFilesUrl: '/files/listFiles',
-        listFoldersUrl: '/files/listFolders',
-        deleteFilesUrl: '/files/deleteFile',
-        moveFilesUrl: '/files/moveFile',
-        createFolderUrl: '/files/createFolder',
-        uploadFilesUrl: '/files/uploadFile',
-        renameFileUrl: '/files/renameFile',
-        getMmodelsUrl: '/files/getModels',
-        textToImageUrl: '/files/textToImage',
-        upscaleImageUrl: '/files/upscaleImage',
-        controlNetUrl: '/files/controlNet',
-        saveTextUrl: '/files/saveText',
+        listFilesUrl: `/admin/files/listFiles`,
+        listFoldersUrl: `/admin/files/listFolders`,
+        deleteFilesUrl: `/admin/files/deleteFile`,
+        moveFilesUrl: `/admin/files/moveFile`,
+        createFolderUrl: `/admin/files/createFolder`,
+        uploadFilesUrl: `/admin/files/fileUpload`,
+        renameFileUrl: `/admin/files/renameFile`,
+        getMmodelsUrl: `/admin/files/getModels`,
+        textToImageUrl: `/admin/files/textToImage`,
+        upscaleImageUrl: `/admin/files/upscaleImage`,
+        controlNetUrl: `/admin/files/controlNet`,
+        saveTextUrl: `/admin/files/saveText`,
 
         imageAutoUpscale: true,
 
@@ -208,11 +190,11 @@
             },
         ],
 
-        imageSelect: '/files/fileManagerFiles',
-        videoSelect: '/files/fileManagerFiles',
-        audioSelect: '/files/fileManagerFiles',
-        fileSelect: '/files/fileManagerFiles',
-        mediaSelect: '/files/fileManagerFiles',// for images and videos
+        imageSelect: '/admin/files/fileManagerFiles',
+        videoSelect: '/admin/files/fileManagerFiles',
+        audioSelect: '/admin/files/fileManagerFiles',
+        fileSelect: '/admin/files/fileManagerFiles',
+        mediaSelect: '/admin/files/fileManagerFiles',// for images and videos
 
         onUploadCoverImage: (e) => {
             uploadFile(e, (response)=>{
@@ -281,10 +263,8 @@
         },
 
         onChange: function () {
-            // Auto save
             clearInterval(intervalId);
             intervalId = setInterval(()=>{
-                // Check for change every 2s
                 let html = builder.htmlCheck(); // htmlCheck() is used only for checking purpose
                 if(previousHtml!==html) { // Save only if content changed
                     save();
@@ -302,7 +282,6 @@
         designPath: '<?= setContentBox() ?>assets/designs/',
         contentStylePath: '<?= setContentBox() ?>assets/styles/',
 
-        /* ContentBuilder settings */
         modulePath: '<?= setContentBox() ?>assets/modules/',
         fontAssetPath: '<?= setContentBox() ?>assets/fonts/',
         assetPath: '<?= setContentBox() ?>assets/',
@@ -313,7 +292,6 @@
 
     });
 
-    // Example of adding custom buttons
     builder.addButton({
         'pos': 2, // button position
         'title': 'Undo',
@@ -388,12 +366,9 @@
         }
     });
 
-
     function uploadFile(e, callback) {
-
         const selectedFile = e.target.files[0];
         const filename = selectedFile.name;
-
         const formData = new FormData();
         formData.append('file', selectedFile);
         fetch('/admin/page/upload-file', {
@@ -404,22 +379,19 @@
             .then(response=>{
                 if(callback) callback(response);
             });
-
     }
 
     function save() {
-
         builder.saveImages('', function(){
-
             var html = builder.html();
-            localStorage.setItem('cBox-mobile-html', html);
+            localStorage.setItem('cBox-html', html);
             var mainCss = builder.mainCss();
-            localStorage.setItem('cBox-mobile-maincss', mainCss);
+            localStorage.setItem('cBox-maincss', mainCss);
             var sectionCss = builder.sectionCss();
-            localStorage.setItem('cBox-mobile-sectioncss', sectionCss);
+            localStorage.setItem('cBox-sectioncss', sectionCss);
 
-            const reqBody = { cBoxMobileContent: html, cBoxMobileMainCss: mainCss, cBoxMobileSectionCss: sectionCss,id:<?=$page['id']?> };
-            fetch('/admin/page/save-mobile-content', {
+            const reqBody = { cBoxContent: html, cBoxMainCss: mainCss, cBoxSectionCss: sectionCss,id:<?=$page['id']?> };
+            fetch('/admin/page/saveContent', {
                 method:'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -451,36 +423,27 @@
                 });
 
         });
-
     }
-
-
-    /* Custom Topbar */
     const btnBack = document.querySelector('.custom-topbar .btn-back');
     btnBack.addEventListener('click', ()=>{
         alert('Button clicked. This is an example of a custom button.');
     });
-
     const btnUndo = document.querySelector('.custom-topbar .btn-undo');
     btnUndo.addEventListener('click', ()=>{
         builder.undo();
     });
-
     const btnRedo = document.querySelector('.custom-topbar .btn-redo');
     btnRedo.addEventListener('click', ()=>{
         builder.redo();
     });
-
     const btnSave = document.querySelector('.custom-topbar .btn-save');
     btnSave.addEventListener('click', ()=>{
         alert('Button clicked. This is an example of a custom button.');
     });
-
     const btnPublish = document.querySelector('.custom-topbar .btn-publish');
     btnPublish.addEventListener('click', ()=>{
         alert('Button clicked. This is an example of a custom button.');
     });
-
     const btnFullView = document.querySelector('.custom-topbar .btn-fullview');
     const btnDeviceDesktopLarge = document.querySelector('.custom-topbar .btn-device-desktop-large');
     const btnDeviceDesktop = document.querySelector('.custom-topbar .btn-device-desktop');
@@ -496,43 +459,36 @@
         btnDeviceTablet.classList.remove('on');
         btnDeviceMobile.classList.remove('on');
     }
-
     btnFullView.addEventListener('click', ()=>{
         builder.setScreenMode('fullview');
         clearActiveButtons();
         btnFullView.classList.add('on');
     });
-
     btnDeviceDesktopLarge.addEventListener('click', ()=>{
         builder.setScreenMode('desktop-lg');
         clearActiveButtons();
         btnDeviceDesktopLarge.classList.add('on');
     });
-
     btnDeviceDesktop.addEventListener('click', ()=>{
         builder.setScreenMode('desktop');
         clearActiveButtons();
         btnDeviceDesktop.classList.add('on');
     });
-
     btnDeviceTabletLandscape.addEventListener('click', ()=>{
         builder.setScreenMode('tablet-landscape');
         clearActiveButtons();
         btnDeviceTabletLandscape.classList.add('on');
     });
-
     btnDeviceTablet.addEventListener('click', ()=>{
         builder.setScreenMode('tablet');
         clearActiveButtons();
         btnDeviceTablet.classList.add('on');
     });
-
     btnDeviceMobile.addEventListener('click', ()=>{
         builder.setScreenMode('mobile');
         clearActiveButtons();
         btnDeviceMobile.classList.add('on');
     });
-
     if(builder.screenMode==='fullview'){
         btnFullView.classList.add('on');
     } else if(builder.screenMode==='desktop-lg'){
@@ -546,17 +502,14 @@
     } else if(builder.screenMode==='mobile'){
         btnDeviceMobile.classList.add('on');
     }
-
     const btnDownload = document.querySelector('.custom-topbar .btn-download');
     if(btnDownload) btnDownload.addEventListener('click', ()=>{
         builder.download();
     });
-
     const btnHtml = document.querySelector('.custom-topbar .btn-html');
     if(btnHtml) btnHtml.addEventListener('click', ()=>{
         builder.viewHtml();
     });
-
     const btnPreview = document.querySelector('.custom-topbar .btn-preview');
     btnPreview.addEventListener('click', ()=>{
         let html = builder.html();
@@ -565,117 +518,13 @@
         localStorage.setItem('preview-maincss', mainCss);
         let sectionCss = builder.sectionCss();
         localStorage.setItem('preview-sectioncss', sectionCss);
-
         window.open('/admin/page/content-box-preview/<?=$page['id']?>', '_blank').focus();
     });
-
     const btnTogglePanel = document.querySelector('.custom-topbar .btn-togglepanel');
     if(btnTogglePanel) btnTogglePanel.addEventListener('click', ()=>{
         builder.toggleEditPanel();
     });
-
-</script>
-<script>
-    (function () {
-        // Save butonunun hemen yanına buton ekle
-        const saveBtn = document.querySelector('.btn-save');
-        if (!saveBtn) return;
-
-        // Aynı butonu iki kez eklememek için kontrol
-        if (!document.querySelector('.btn-copy-desktop')) {
-            saveBtn.insertAdjacentHTML('afterend', `
-      <button class="btn-copy-desktop" type="button" title="Copy Desktop → Mobile" style="margin-left:8px">
-        <svg><use xlink:href="#icon-copy"></use></svg>
-        <span>Desktop → Mobile</span>
-      </button>
-    `);
-        }
-
-        const copyBtn = document.querySelector('.btn-copy-desktop');
-        if (!copyBtn) return;
-
-        copyBtn.addEventListener('click', function () {
-            // Desktop içerikleri PHP'den güvenli şekilde JS'e al (json_encode ile kaçışlı)
-            const desktopHtml        = <?= json_encode($page['cBoxContent']        ?? '') ?>;
-            const desktopMainCss     = <?= json_encode($page['cBoxMainCss']        ?? '') ?>;
-            const desktopSectionCss  = <?= json_encode($page['cBoxSectionCss']     ?? '') ?>;
-            const pageId             = <?= (int)($page['id'] ?? 0) ?>;
-
-            if (!pageId) {
-                alert('Sayfa ID bulunamadı.');
-                return;
-            }
-
-            // Desktop → Mobile kopyasını DB'ye yaz
-            fetch('/admin/page/save-mobile-content', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: pageId,
-                    cBoxMobileContent: desktopHtml,
-                    cBoxMobileMainCss: desktopMainCss,
-                    cBoxMobileSectionCss: desktopSectionCss
-                })
-            })
-                .then(r => r.json())
-                .then(res => {
-                    // Basit bilgilendirme
-                    alert('Desktop içerik ve CSS mobil alanlara kopyalandı.');
-                    // İstersen sayfayı yenileyip builder içeriğini de güncel göster
-                    location.reload();
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('Kopyalama sırasında bir hata oluştu.');
-                });
-        });
-    })();
-    function save() {
-        return new Promise((resolve, reject) => {
-            builder.saveImages('', function () {
-
-                var html = builder.html();
-                localStorage.setItem('cBox-mobile-html', html);
-                var mainCss = builder.mainCss();
-                localStorage.setItem('cBox-mobile-maincss', mainCss);
-                var sectionCss = builder.sectionCss();
-                localStorage.setItem('cBox-mobile-sectioncss', sectionCss);
-
-                const reqBody = {
-                    cBoxMobileContent: html,
-                    cBoxMobileMainCss: mainCss,
-                    cBoxMobileSectionCss: sectionCss,
-                    id: <?= (int)$page['id'] ?>
-                };
-
-                fetch('/admin/page/save-mobile-content', {
-                    method:'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(reqBody),
-                })
-                    .then(r => r.json())
-                    .then(data => resolve(data))
-                    .catch(err => reject(err));
-
-            }, function(img, base64, filename){
-                // Görsel yükleme (değiştirmeye gerek yok)
-                const reqBody = { image: base64, filename: filename };
-                fetch('/admin/page/upload-base64', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(reqBody),
-                })
-                    .then(r => r.json())
-                    .then(response => {
-                        const uploadedImageUrl = response.url;
-                        img.setAttribute('src', uploadedImageUrl);
-                    })
-                    .catch(()=>{ /* yoksay */ });
-            });
-        });
-    }
 </script>
 <script src="<?= setContentBox() ?>box/box-flex.js"></script> <!-- Box Framework js include -->
-
 </body>
 </html>

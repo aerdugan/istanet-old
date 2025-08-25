@@ -97,7 +97,7 @@
                         </div>
                     </div>
                 </div>
-                <?php $activeLang = session()->get('lang') ?? 'tr'; ?>
+                <?php $activeLang = session()->get('data_lang'); ?>
                 <div class="row fv-row mb-7">
                     <div class="col-md-3 text-md-end">
                         <label class="fs-6 fw-bold form-label mt-3" for="ikinci"><span>İçerik Çevirisi ve SEO</span></label>
@@ -351,7 +351,7 @@
                                     <div class="preview"><img src="<?php echo $item->breadcrumbImage ;?>" alt="" height="60px"></div>
                                 </div>
                                 <div class="modal-files">
-                                    <iframe src="<?= site_url("files/getModals") ?>"></iframe>
+                                    <iframe src="<?= site_url("admin/files/getModals") ?>"></iframe>
                                 </div>
                             </div>
                         </div>
@@ -491,9 +491,6 @@
         </form>
     </div>
 
-    <div class="modal-files">
-        <iframe src="<?= site_url("files/getModals") ?>"></iframe>
-    </div>
 <?= $this->endSection() ?>
 <?= $this->section('pageScripts') ?>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>

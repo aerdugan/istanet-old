@@ -1,15 +1,15 @@
 <?= $this->extend('Views/layout/main') ?>
 <?= $this->section('pageStyles') ?>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<link rel="stylesheet" href="<?php site_url()?>mare/checkbox.css">
-<link rel="stylesheet" href="<?php site_url()?>mare/nestable.css">
+<link rel="stylesheet" href="/mare/checkbox.css">
+<link rel="stylesheet" href="/mare/nestable.css">
 <style>
     .form-control {
         line-height: 1.1 !important;
     }
 </style>
 <?= $this->endSection() ?>
-<?= $this->section('breadcrumb') ?>
+<?= $this->section('breadCrumbs') ?>
 <div class="app-toolbar-wrapper d-flex flex-stack flex-wrap gap-4 w-100">
     <div class="page-title d-flex flex-column justify-content-center gap-1 me-3">
         <h1 class="page-heading d-flex flex-column justify-content-center text-gray-900 fw-bold fs-3 m-0"><?= lang("App.menu_page")?></h1>
@@ -41,7 +41,7 @@
                                 <div class="d-flex justify-content-end flex-shrink-0" style="padding-right: 10px;padding-top: 1px!important;">
                                     <div class="col-md-6" style="padding-right: 35px"></div>
                                     <div class="col-md-2" style="margin-right: 20px;">
-                                        <a href="<?php echo base_url("/admin/page/updateForm/$item->id"); ?>" class="btn btn-info btn-sm">
+                                        <a href="<?php echo base_url("admin/page/updateForm/$item->id"); ?>" class="btn btn-info btn-sm">
                                             <i class="fa fa-edit"></i>
                                         </a>
                                     </div>
@@ -172,12 +172,10 @@
 <?= $this->endSection() ?>
 <?= $this->section('pageScripts') ?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.14.0/sweetalert2.all.min.js" integrity="sha512-vHKpHh3VBF4B8QqZ1ppqnNb8zoTBceER6pyGb5XQyGtkCmeGwxDi5yyCmFLZA4Xuf9Jn1LBoAnx9sVvy+MFjNg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="<?=site_url("themes/focus2/vendor/jqueryui/js/jquery-ui.min.js")?>"></script>
-<script src="<?=site_url("themes/focus2/vendor/toastr/js/toastr.min.js")?>"></script>
-<script src="<?=site_url("themes/focus2/vendor/nestable2/js/jquery.nestable.min.js")?>"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js" integrity="sha512-MSOo1aY+3pXCOCdGAYoBZ6YGI0aragoQsg1mKKBHXCYPIWxamwOE7Drh+N5CPgGI5SA9IEKJiPjdfqWFWmZtRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js" integrity="sha512-lbwH47l/tPXJYG9AcFNoJaTMhGvYWhVM9YI43CT+uteTRRaiLCui8snIgyAN8XWgNjNhCqlAUdzZptso6OCoFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="/mare/nestable2/js/jquery.nestable.min.js"></script>
 <script src="<?=site_url("assets/js/main.js")?>"></script>
-
 <script>
     $(document).ready(function() {
 
@@ -253,7 +251,7 @@
             }
 
             // Sıralama işlemi için AJAX isteği
-            xhrSira = $.post("/admin/page/ordering", e, function(response) {
+            xhrSira = $.post("admin/page/ordering", e, function(response) {
                 // CSRF token'larını güncelle
                 csrfName = response.csrfName;
                 csrfHash = response.csrfHash;

@@ -361,3 +361,87 @@ if (! function_exists('setting')) {
     }
 }
 
+
+if (!function_exists('generateSeoFromContent')) {
+    function generateSeoFromContent(string $html, string $lang): ?array
+    {
+        $apiKey = getenv('OPENAI_API_KEY');
+        if (empty($apiKey)) return null;
+
+        // Sistem mesajı: GPT'yi SEO asistanı gibi düşünmesini sağla
+        $systemPrompt = "You are an SEO assistant. Based on user-visible HTML content, generate a JSON object with a short SEO description and relevant keywords in {$lang}.";
+
+        // Kullanıcı mesajı: HTML içeriğe göre JSON üretmesini istiyoruz
+        $userPrompt = <<<PROMPT
+Below is a block of HTML content. Ignore all HTML tags and JavaScript.
+
+Your job is to:
+1. Extract the user-visible text.
+2. Generate:
+   - A short SEO page description (max 160 characters)
+   - 6 to 10 relevant keywords
+
+⚠️ IMPORTANT: Return ONLY a valid JSON object. No markdown, no explanations.
+
+Format:
+{
+  "desc": "...",
+  "keywords": ["...", "..."]
+}
+
+HTML Content:
+$html
+PROMPT;
+
+        $postData = [
+            'model' => 'gpt-4o',
+            'messages' => [
+                ['role' => 'system', 'content' => $systemPrompt],
+                ['role' => 'user', 'content' => $userPrompt],
+            ],
+            'temperature' => 0.4,
+            'max_tokens' => 600,
+        ];
+
+        $headers = [
+            'Authorization: Bearer ' . $apiKey,
+            'Content-Type: application/json'
+        ];
+
+        $ch = curl_init('https://api.openai.com/v1/chat/completions');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => json_encode($postData, JSON_UNESCAPED_UNICODE),
+            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_TIMEOUT => 60
+        ]);
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        $result = json_decode($response, true);
+        $content = $result['choices'][0]['message']['content'] ?? '';
+
+        // Log orijinal GPT yanıtı
+        log_message('debug', "💬 GPT ORİJİNAL YANIT:\n" . $content);
+
+        // ✅ Markdown blokları varsa temizle
+        $content = trim($content);
+        if (str_starts_with($content, '```json')) {
+            $content = preg_replace('/^```json\s*/', '', $content);
+            $content = preg_replace('/```$/', '', $content);
+        }
+
+        // ✅ JSON formatını ayrıştır
+        $json = json_decode($content, true);
+        if (is_array($json) && isset($json['desc'], $json['keywords'])) {
+            return $json;
+        }
+
+        // ❌ JSON olarak parse edilemezse hata yaz
+        log_message('error', "❌ GPT yanıtı parse edilemedi:\n" . $content);
+        return null;
+    }
+}
+

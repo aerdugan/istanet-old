@@ -59,6 +59,7 @@
             <svg><use xlink:href="#icon-save"></use></svg>
             <span>Save</span>
         </button>
+
         <button class="btn-publish" title="Publish">
             <svg><use xlink:href="#icon-publish"></use></svg>
             <span>Publish</span>
@@ -162,18 +163,18 @@
         // The server implementation for ws://localhost:3002 can be found in server.js (Node.js code)
 
         // Enabling AI image generation
-        listFilesUrl: '/files/listFiles',
-        listFoldersUrl: '/files/listFolders',
-        deleteFilesUrl: '/files/deleteFile',
-        moveFilesUrl: '/files/moveFile',
-        createFolderUrl: '/files/createFolder',
-        uploadFilesUrl: '/files/uploadFile',
-        renameFileUrl: '/files/renameFile',
-        getMmodelsUrl: '/files/getModels',
-        textToImageUrl: '/files/textToImage',
-        upscaleImageUrl: '/files/upscaleImage',
-        controlNetUrl: '/files/controlNet',
-        saveTextUrl: '/files/saveText',
+        listFilesUrl: '/admin/files/listFiles',
+        listFoldersUrl: '/admin/files/listFolders',
+        deleteFilesUrl: '/admin/files/deleteFile',
+        moveFilesUrl: '/admin/files/moveFile',
+        createFolderUrl: '/admin/files/createFolder',
+        uploadFilesUrl: '/admin/files/uploadFile',
+        renameFileUrl: '/admin/files/renameFile',
+        getMmodelsUrl: '/admin/files/getModels',
+        textToImageUrl: '/admin/files/textToImage',
+        upscaleImageUrl: '/admin/files/upscaleImage',
+        controlNetUrl: '/admin/files/controlNet',
+        saveTextUrl: '/admin/files/saveText',
 
         imageAutoUpscale: true,
 
@@ -208,11 +209,11 @@
             },
         ],
 
-        imageSelect: '/files/fileManagerFiles',
-        videoSelect: '/files/fileManagerFiles',
-        audioSelect: '/files/fileManagerFiles',
-        fileSelect: '/files/fileManagerFiles',
-        mediaSelect: '/files/fileManagerFiles',// for images and videos
+        imageSelect: '/admin/files/fileManagerFiles',
+        videoSelect: '/admin/files/fileManagerFiles',
+        audioSelect: '/admin/files/fileManagerFiles',
+        fileSelect: '/admin/files/fileManagerFiles',
+        mediaSelect: '/admin/files/fileManagerFiles',// for images and videos
 
         onUploadCoverImage: (e) => {
             uploadFile(e, (response)=>{
@@ -574,106 +575,6 @@
         builder.toggleEditPanel();
     });
 
-</script>
-<script>
-    (function () {
-        // Save butonunun hemen yanına buton ekle
-        const saveBtn = document.querySelector('.btn-save');
-        if (!saveBtn) return;
-
-        // Aynı butonu iki kez eklememek için kontrol
-        if (!document.querySelector('.btn-copy-desktop')) {
-            saveBtn.insertAdjacentHTML('afterend', `
-      <button class="btn-copy-desktop" type="button" title="Copy Desktop → Mobile" style="margin-left:8px">
-        <svg><use xlink:href="#icon-copy"></use></svg>
-        <span>Desktop → Mobile</span>
-      </button>
-    `);
-        }
-
-        const copyBtn = document.querySelector('.btn-copy-desktop');
-        if (!copyBtn) return;
-
-        copyBtn.addEventListener('click', function () {
-            // Desktop içerikleri PHP'den güvenli şekilde JS'e al (json_encode ile kaçışlı)
-            const desktopHtml        = <?= json_encode($page['cBoxContent']        ?? '') ?>;
-            const desktopMainCss     = <?= json_encode($page['cBoxMainCss']        ?? '') ?>;
-            const desktopSectionCss  = <?= json_encode($page['cBoxSectionCss']     ?? '') ?>;
-            const pageId             = <?= (int)($page['id'] ?? 0) ?>;
-
-            if (!pageId) {
-                alert('Sayfa ID bulunamadı.');
-                return;
-            }
-
-            // Desktop → Mobile kopyasını DB'ye yaz
-            fetch('/admin/page/save-mobile-content', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: pageId,
-                    cBoxMobileContent: desktopHtml,
-                    cBoxMobileMainCss: desktopMainCss,
-                    cBoxMobileSectionCss: desktopSectionCss
-                })
-            })
-                .then(r => r.json())
-                .then(res => {
-                    // Basit bilgilendirme
-                    alert('Desktop içerik ve CSS mobil alanlara kopyalandı.');
-                    // İstersen sayfayı yenileyip builder içeriğini de güncel göster
-                    location.reload();
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('Kopyalama sırasında bir hata oluştu.');
-                });
-        });
-    })();
-    function save() {
-        return new Promise((resolve, reject) => {
-            builder.saveImages('', function () {
-
-                var html = builder.html();
-                localStorage.setItem('cBox-mobile-html', html);
-                var mainCss = builder.mainCss();
-                localStorage.setItem('cBox-mobile-maincss', mainCss);
-                var sectionCss = builder.sectionCss();
-                localStorage.setItem('cBox-mobile-sectioncss', sectionCss);
-
-                const reqBody = {
-                    cBoxMobileContent: html,
-                    cBoxMobileMainCss: mainCss,
-                    cBoxMobileSectionCss: sectionCss,
-                    id: <?= (int)$page['id'] ?>
-                };
-
-                fetch('/admin/page/save-mobile-content', {
-                    method:'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(reqBody),
-                })
-                    .then(r => r.json())
-                    .then(data => resolve(data))
-                    .catch(err => reject(err));
-
-            }, function(img, base64, filename){
-                // Görsel yükleme (değiştirmeye gerek yok)
-                const reqBody = { image: base64, filename: filename };
-                fetch('/admin/page/upload-base64', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(reqBody),
-                })
-                    .then(r => r.json())
-                    .then(response => {
-                        const uploadedImageUrl = response.url;
-                        img.setAttribute('src', uploadedImageUrl);
-                    })
-                    .catch(()=>{ /* yoksay */ });
-            });
-        });
-    }
 </script>
 <script src="<?= setContentBox() ?>box/box-flex.js"></script> <!-- Box Framework js include -->
 

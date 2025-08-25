@@ -9,7 +9,7 @@
     <link href="<?= setContentBox() ?>/contentbuilder/contentbuilder.css" rel="stylesheet" type="text/css" />
     <link href="<?= setContentBox() ?>/contentbox/contentbox.css" rel="stylesheet">
     <style>
-        @media all and (max-width: 1380px) {
+        @media all and (max-width: 1380wpx) {
             .custom-topbar .btn-device-desktop,
             .custom-topbar .btn-device-tablet,
             .custom-topbar .btn-device-tablet-landscape,
@@ -103,7 +103,7 @@
 </div>
 
 <!-- Required js for editing (not needed in production) -->
-<script src="<?= setContentBox() ?>contentbox/lang/en.js"></script>
+<script src="https://cdn.istanet.com/cBox/cBox5830/assets/styles/023.pngcontentbox/lang/en.js"></script>
 <script src="<?= setContentBox() ?>contentbox/contentbox.min.js"></script>
 
 <?php $lang = service('request')->getLocale(); ?>
@@ -144,18 +144,18 @@
             clear: ['clear', 'erase']
         },
 
-        listFilesUrl: `/admin/files/listFiles`,
-        listFoldersUrl: `/admin/files/listFolders`,
-        deleteFilesUrl: `/admin/files/deleteFile`,
-        moveFilesUrl: `/admin/files/moveFile`,
-        createFolderUrl: `/admin/files/createFolder`,
-        uploadFilesUrl: `/admin/files/fileUpload`,
-        renameFileUrl: `/admin/files/renameFile`,
-        getMmodelsUrl: `/admin/files/getModels`,
-        textToImageUrl: `/admin/files/textToImage`,
-        upscaleImageUrl: `/admin/files/upscaleImage`,
-        controlNetUrl: `/admin/files/controlNet`,
-        saveTextUrl: `/admin/files/saveText`,
+        listFilesUrl: `/files/listFiles`,
+        listFoldersUrl: `/files/listFolders`,
+        deleteFilesUrl: `/files/deleteFile`,
+        moveFilesUrl: `/files/moveFile`,
+        createFolderUrl: `/files/createFolder`,
+        uploadFilesUrl: `/files/fileUpload`,
+        renameFileUrl: `/files/renameFile`,
+        getMmodelsUrl: `/files/getModels`,
+        textToImageUrl: `/files/textToImage`,
+        upscaleImageUrl: `/files/upscaleImage`,
+        controlNetUrl: `/files/controlNet`,
+        saveTextUrl: `/files/saveText`,
 
         imageAutoUpscale: true,
 
@@ -190,11 +190,11 @@
             },
         ],
 
-        imageSelect: '/admin/files/fileManagerFiles',
-        videoSelect: '/admin/files/fileManagerFiles',
-        audioSelect: '/admin/files/fileManagerFiles',
-        fileSelect: '/admin/files/fileManagerFiles',
-        mediaSelect: '/admin/files/fileManagerFiles',// for images and videos
+        imageSelect: '/files/fileManagerFiles',
+        videoSelect: '/files/fileManagerFiles',
+        audioSelect: '/files/fileManagerFiles',
+        fileSelect: '/files/fileManagerFiles',
+        mediaSelect: '/files/fileManagerFiles',// for images and videos
 
         onUploadCoverImage: (e) => {
             uploadFile(e, (response)=>{

@@ -3,9 +3,9 @@ namespace App\Modules\Page\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\Page\Models\PageModel;
-use Config\FileConfig;
+use Throwable;
 
-helper('translate');
+
 /**
  * Class Task
  */
@@ -29,6 +29,8 @@ class Page extends BaseController
     public function index()
     {
         helper('translate');
+
+        $data['trItems'] = getDefaultPages();
 
         $db = \Config\Database::connect();
         $lang = session()->get('lang');
@@ -62,7 +64,6 @@ class Page extends BaseController
         $sourceLang = getDefaultLanguage();
         $userId = session()->get('id_user');
 
-
         $data = [
             'title'             => $originalTitle,
             'url'               => $originalUrl,
@@ -91,7 +92,7 @@ class Page extends BaseController
             ]);
         }
 
-        return redirect()->to('/admin/page');
+        return redirect()->to('/page');
     }
     public function addMissingLanguagePages($referenceId)
     {
@@ -146,7 +147,6 @@ class Page extends BaseController
             'isMobile',
             'isWebEditor',
             'isMobileEditor',
-            'setStyle',
             'createdAt',
             'updated_at'
         ];
@@ -192,8 +192,6 @@ class Page extends BaseController
     }
     public function translatePageFields($id)
     {
-        helper(['translate', 'language']);
-
         $targetPage = $this->page_model->find($id);
 
         if (!$targetPage) {
@@ -243,6 +241,8 @@ class Page extends BaseController
 
         return $this->response->setJSON(['status' => 'success', 'message' => 'Alanlar başarıyla çevrildi.']);
     }
+
+
     public function generateSeoFields($id)
     {
         helper(['translate', 'language']);
@@ -311,8 +311,6 @@ class Page extends BaseController
     }
 
 
-
-
     public function clonePage()
     {
         $lang = session()->get('lang');
@@ -354,7 +352,7 @@ class Page extends BaseController
             $newPageId = $db->insertID();
 
             if ($newPageId) {
-                return redirect()->to('/admin/page')->with('success', 'Sayfa başarıyla klonlandı.');
+                return redirect()->to('/page')->with('success', 'Sayfa başarıyla klonlandı.');
             } else {
                 return redirect()->back()->with('error', 'Klonlama işlemi başarısız oldu.');
             }
@@ -383,6 +381,8 @@ class Page extends BaseController
 
         if ($this->page_model->updatePage($data, $id)) {
 
+            $integration = new \App\Controllers\Integration;
+            $integration->setLog('page-controller',$this->request->getPost('title'). ' updated-page');
 
             session()->setFlashdata('swal', [
                 'icon' => 'success',
@@ -397,7 +397,7 @@ class Page extends BaseController
             ]);
         }
 
-        return redirect()->to('/admin/page');
+        return redirect()->to('/page');
     }
     public function pageDelete()
     {
@@ -504,7 +504,7 @@ class Page extends BaseController
     }
     public function updateForm($id)
     {
-        // Kayıt getir
+
         $item = $this->page_model->getOne($id);
 
         // Eğer kayıt bulunamadıysa, boş bir nesne oluştur
@@ -634,6 +634,8 @@ class Page extends BaseController
 
             if ($update) {
 
+                $integration = new \App\Controllers\Integration;
+                $integration->setLog('page-controller',$this->request->getPost('title') . " update-page");
 
                 session()->setFlashdata('swal', [
                     'icon' => 'success',
@@ -655,7 +657,7 @@ class Page extends BaseController
             ]);
         }
 
-        return redirect()->to('/admin/page/updateForm/' . $id);
+        return redirect()->to('/page/updateForm/' . $id);
     }
     public function contentBuilderEdit($id)
     {

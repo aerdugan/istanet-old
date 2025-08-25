@@ -6,24 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <link rel="shortcut icon" href="#" />
-    <link href="<?php setContentBox() ?>assets/minimalist-blocks/content.css" rel="stylesheet" type="text/css" />
-    <link href="<?php setContentBox() ?>contentbuilder/contentbuilder.css" rel="stylesheet" type="text/css" />
+    <link href="<?= setContentBox() ?>assets/minimalist-blocks/content.css" rel="stylesheet" type="text/css" />
+    <link href="<?= setContentBox() ?>contentbuilder/contentbuilder.css" rel="stylesheet" type="text/css" />
     <style>
-        .container {  margin: 0 auto;max-width: 400px; width:100%; padding:35px 35px; box-sizing: border-box;}
+        .container {  margin: 0 auto;max-width: 1000px; width:100%; padding:35px 35px; box-sizing: border-box;}
     </style>
 </head>
 <body style="background-color: #eaeaea">
 
 <div class="container container-builder" style="margin-top: 100px;background-color: white;margin-bottom: 50px;border-radius: 15px">
-    <?= $page['mobileHtml'] ?>
+    <?= $page['inpHtml'] ?>
 </div>
 
 <div class="is-tool" style="position:fixed;width:145px;height:50px;top:25px;left:30px;right:auto;border:none;display:block;">
-    <form id="form" method="post" action="<?php echo base_url('/admin/page/contentBuilderMobileSave') ?>">
+    <form id="form" method="post" action="<?php echo base_url('/admin/page/contentBuilderSave') ?>">
         <input type="hidden" name="id" value="<?php echo @$page['id'] ?>">
-        <input type="hidden" name="mobileHtml">
+        <input type="hidden" name="inpHtml">
         <button type="button" id="btnSave" class="classic" style="width:70px;height:50px;background-color: #17C653;color: white">Kaydet</button>
-        <button type="button" onclick="window.location.href='<?= base_url('/admin/page/updateForm/' . $page['id']) ?>'" class="classic" style="width:70px;height:50px;background-color: #F8285A;color: white">
+        <button type="button" onclick="window.location.href='<?= base_url('admin/page/updateForm/' . $page['id']) ?>'" class="classic" style="width:70px;height:50px;background-color: #F8285A;color: white">
         İptal
         </button>
     </form>
@@ -48,32 +48,37 @@
         snippetAddTool: true,
         disableConfig: false,
 
-        listFilesUrl: '/files/listFiles',
-        listFoldersUrl: '/files/listFolders',
-        deleteFilesUrl: '/files/deleteFile',
-        moveFilesUrl: '/files/moveFile',
-        createFolderUrl: '/files/createFolder',
-        uploadFilesUrl: '/files/uploadFile',
-        renameFileUrl: '/files/renameFile',
-        getMmodelsUrl: '/files/getModels',
-        textToImageUrl: '/files/textToImage',
-        upscaleImageUrl: '/files/upscaleImage',
-        controlNetUrl: '/files/controlNet',
-        saveTextUrl: '/files/saveText',
 
-
+        assetFolderTree: true,
+        assetPanelReverse: false,
+        assetFilesOnly: false,
+        assetRefreshButton: false,
         imageAutoUpscale: false,
-        // viewFileUrl: '/viewfile', // If using S3
         panelReverse: false,
         filesOnly: true,
-        // Default Asset Manager (can be replaced with your own asset/file manager application)
 
-        imageSelect: '/files/fileManagerFiles',
-        videoSelect: '/files/fileManagerFiles',
-        audioSelect: '/files/fileManagerFiles',
-        fileSelect: '/files/fileManagerFiles',
-        mediaSelect: '/files/fileManagerFiles',
-        mediaHandler: '<?php echo base_url("/admin/page/saveMedia")?>',
+        listFilesUrl: `/admin/files/listFiles`,
+        listFoldersUrl: `/admin/files/listFolders`,
+        deleteFilesUrl: `/admin/files/deleteFile`,
+        moveFilesUrl: `/admin/files/moveFile`,
+        createFolderUrl: `/admin/files/createFolder`,
+        uploadFilesUrl: `/admin/files/fileUpload`,
+        renameFileUrl: `/admin/files/renameFile`,
+        getMmodelsUrl: `/admin/files/getModels`,
+        textToImageUrl: `/admin/files/textToImage`,
+        upscaleImageUrl: `/admin/files/upscaleImage`,
+        controlNetUrl: `/admin/files/controlNet`,
+        saveTextUrl: `/admin/files/saveText`,
+
+
+
+
+        imageSelect: '/admin/files/fileManagerFiles',
+        videoSelect: '/admin/files/fileManagerFiles',
+        audioSelect: '/admin/files/fileManagerFiles',
+        fileSelect: '/admin/files/fileManagerFiles',
+        mediaSelect: '/admin/files/fileManagerFiles',
+        mediaHandler: '<?php echo base_url("page/saveMedia")?>',
         plugins: [
             { name: 'preview', showInMainToolbar: true, showInElementToolbar: true },
             { name: 'wordcount', showInMainToolbar: true, showInElementToolbar: true },
@@ -82,9 +87,6 @@
         ],
         snippetCategories: [
             [120,'Basic'],
-            [201,'Little Snippets'],
-            [202,'Design Blocks'],
-            [301,'Kallyas Theme'],
             [119,'Headline'],
             [102,'Photos'],
             [103,'Profile'],
@@ -108,8 +110,8 @@
     });
 
     $('#btnSave').click(function(event) {
-        builder.saveImages('<?php echo site_url('/admin/page/saveImage') ?>', function(){
-            $('#form [name="mobileHtml"]').val(builder.html());
+        builder.saveImages('<?php echo site_url('/adminpage/saveImage') ?>', function(){
+            $('#form [name="inpHtml"]').val(builder.html());
             $('#form').submit();
         });
     });
